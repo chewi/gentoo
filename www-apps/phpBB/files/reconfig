@@ -1,0 +1,5 @@
+#!/bin/sh
+
+if [ $1 = "install" ]; then
+	chmod -v o= "${MY_INSTALLDIR}"/config.php || exit 1
+fi
