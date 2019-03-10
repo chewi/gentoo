@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -9,7 +9,7 @@ if [[ ${PV} = 9999* ]]; then
 	EXPERIMENTAL="true"
 fi
 
-inherit autotools readme.gentoo-r1 toolchain-funcs $GIT_ECLASS
+inherit meson readme.gentoo-r1 toolchain-funcs $GIT_ECLASS
 
 DESCRIPTION="Wayland reference compositor"
 HOMEPAGE="https://wayland.freedesktop.org/"
@@ -37,8 +37,8 @@ REQUIRED_USE="
 
 RDEPEND="
 	>=dev-libs/libinput-0.8.0
-	>=dev-libs/wayland-1.12.0
-	>=dev-libs/wayland-protocols-1.14
+	>=dev-libs/wayland-1.17.0
+	>=dev-libs/wayland-protocols-1.17
 	lcms? ( media-libs/lcms:2 )
 	media-libs/libpng:0=
 	webp? ( media-libs/libwebp:0= )
@@ -88,68 +88,50 @@ DEPEND="${RDEPEND}
 	virtual/pkgconfig
 "
 
-src_prepare() {
-	default
-	if [[ ${PV} = 9999* ]]; then
-		eautoreconf
-	else
-		elibtoolize
-	fi
-}
-
 src_configure() {
-	local myconf=()
-
-	if use examples || use test; then
-		myconf+=( --enable-simple-clients )
-	else
-		myconf+=( --disable-simple-clients )
-	fi
-
-	econf \
-		$(use_enable examples demo-clients-install) \
-		$(use_enable fbdev fbdev-compositor) \
-		$(use_enable dbus) \
-		$(use_enable drm drm-compositor) \
-		$(use_enable headless headless-compositor) \
-		$(use_enable ivi ivi-shell) \
-		$(use_enable lcms) \
-		$(use_enable rdp rdp-compositor) \
-		$(use_enable wayland-compositor) \
-		$(use_enable X x11-compositor) \
-		$(use_enable launch weston-launch) \
-		$(use_enable colord) \
-		$(use_enable gles2 egl) \
-		$(use_enable remoting) \
-		$(use_enable resize-optimization) \
-		$(use_enable screen-sharing) \
-		$(use_enable suid setuid-install) \
-		$(use_enable systemd systemd-login) \
-		$(use_enable systemd systemd-notify) \
-		$(use_enable xwayland) \
-		$(use_enable xwayland xwayland-test) \
-		$(use_with jpeg) \
-		$(use_with webp) \
-		--with-cairo=image \
-		--disable-junit-xml \
-		--disable-simple-dmabuf-drm-client \
-		--disable-simple-dmabuf-v4l-client \
-		--disable-simple-egl-clients \
-		--disable-vaapi-recorder \
+	local emesonargs=(
+		$(meson_use drm backend-drm)
+		-Dbackend-drm-screencast-vaapi=false
+		$(meson_use fbdev backend-fbdev)
+		$(meson_use headless backend-headless)
+		$(meson_use rdp backend-rdp)
+		$(meson_use X backend-x11)
+		$(meson_use colord color-management-colord)
+		$(meson_use lcms color-management-lcms)
+		$(meson_use examples demo-clients)
+		$(meson_use jpeg image-jpeg)
+		$(meson_use webp image-webp)
+		$(meson_use dbus launcher-logind)
+		$(meson_use wayland-compositor shell-desktop)
+		$(meson_use ivi shell-ivi)
+		$(meson_use remoting)
+		$(meson_use gles2 renderer-gl)
+		$(meson_use resize-optimization resize-pool)
+		$(meson_use screen-sharing screenshare)
+		$(usex examples -Dsimple-clients=damage,img,egl,shm,touch "")
+		-Dsimple-dmabuf-drm=auto
+		$(meson_use systemd)
+		-Dtest-junit-xml=false
+		-Dtools=debug,info,terminal
+		$(meson_use launch weston-launch)
+		$(meson_use xwayland)
 		"${myconf[@]}"
+	)
+	meson_src_configure
 }
 
 src_test() {
 	export XDG_RUNTIME_DIR="${T}/runtime-dir"
 	mkdir "${XDG_RUNTIME_DIR}" || die
 	chmod 0700 "${XDG_RUNTIME_DIR}" || die
-
 	cd "${BUILD_DIR}" || die
-	emake check
+	meson_src_test
 }
 
 src_install() {
-	default
-
+	meson_src_install
+	if use launch && use suid; then
+		chmod u+s "${BUILD_DIR}"/*/weston-launch || die
+	fi
 	readme.gentoo_create_doc
 }
