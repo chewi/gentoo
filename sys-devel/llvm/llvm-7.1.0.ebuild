@@ -201,6 +201,8 @@ multilib_src_compile() {
 		pax-mark m "${BUILD_DIR}"/unittests/ExecutionEngine/MCJIT/MCJITTests
 		pax-mark m "${BUILD_DIR}"/unittests/Support/SupportTests
 	fi
+
+	bash "${FILESDIR}"/7.1.0/gen-llvm-config-sh > "${CHOST}"-llvm-config.sh || die
 }
 
 multilib_src_test() {
@@ -220,6 +222,7 @@ src_install() {
 
 	local LLVM_LDPATHS=()
 	multilib-minimal_src_install
+	dosym "${CHOST}"-llvm-config /usr/lib/llvm/${SLOT}/bin/cross/llvm-config
 
 	# move wrapped headers back
 	mv "${ED%/}"/usr/include "${ED%/}"/usr/lib/llvm/${SLOT%/*}/include || die
@@ -233,6 +236,9 @@ multilib_src_install() {
 	mv "${ED%/}"/usr/lib/llvm/${SLOT%/*}/include "${ED%/}"/usr/include || die
 
 	LLVM_LDPATHS+=( "${EPREFIX}/usr/lib/llvm/${SLOT%/*}/$(get_libdir)" )
+
+	exeinto /usr/lib/llvm/${SLOT}/bin/cross
+	newexe "${CHOST}"-llvm-config{.sh,}
 }
 
 multilib_src_install_all() {

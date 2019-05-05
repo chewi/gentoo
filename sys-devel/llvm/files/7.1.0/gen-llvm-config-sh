@@ -1,0 +1,93 @@
+#!/bin/bash -e
+
+build_var() {
+	cpp -P -Iinclude -include llvm/Config/config.h -include tools/llvm-config/BuildVariables.inc - <<< "$1"
+}
+
+build_yes_no() {
+	if [[ $(build_var "$1") = 1 ]]; then
+		echo YES
+	else
+		echo NO
+	fi
+}
+
+build_on_off() {
+	if [[ $(build_var "$1") = 1 ]]; then
+		echo ON
+	else
+		echo OFF
+	fi
+}
+
+: ${CBUILD:-${CHOST}}
+
+if [[ -n ${CBUILD} ]]; then
+	CXX=${CBUILD}-c++
+else
+	CXX=c++
+fi
+
+TEMP_EXE=$(mktemp)
+trap 'rm -f "${TEMP_EXE}"' EXIT
+
+${CXX} -o "${TEMP_EXE}" -x c++ - <<EOF
+#include <cstdio>
+#include "tools/llvm-config/LibraryDependencies.inc"
+
+int main(int argc, char** argv) {
+	unsigned int i, total;
+	struct AvailableComponent *component;
+	const char *library;
+
+	total = sizeof(AvailableComponents) / sizeof(AvailableComponents[0]);
+
+	for (i = 0; i < total; i++) {
+		component = &AvailableComponents[i];
+		library = component->Library;
+		if (library == NULL) library = "";
+		if (component->IsInstalled) printf("\t\"%s %s\"\n", component->Name, library);
+	}
+
+	return 0;
+}
+EOF
+
+cat <<EOF
+#!/bin/bash -e
+
+PREFIX=\${0%/*/*/*}
+
+COMPONENTS=(
+$("${TEMP_EXE}")
+)
+
+handle_arg() {
+	case "\${1}" in
+		--version) echo $(build_var PACKAGE_VERSION) ;;
+		--prefix) echo "\${PREFIX}" ;;
+		--bindir) echo "\${PREFIX}"/bin ;;
+		--includedir) echo "\${PREFIX}"/include ;;
+		--libdir) echo "\${PREFIX}"/lib$(build_var LLVM_LIBDIR_SUFFIX) ;;
+		--cppflags) echo "-I\$(handle_arg --includedir) "$(build_var LLVM_CPPFLAGS) ;;
+		--cflags) echo "-I\$(handle_arg --includedir) "$(build_var LLVM_CFLAGS) ;;
+		--cxxflags) echo "-I\$(handle_arg --includedir) "$(build_var LLVM_CXXFLAGS) ;;
+		--ldflags) echo "-L\$(handle_arg --libdir) "$(build_var LLVM_LDFLAGS) ;;
+		--libs) LIBS=(\${COMPONENTS[@]#* }); echo "\${LIBS[@]/#/-l}" ;;
+		--libnames) LIBS=(\${COMPONENTS[@]#* }); LIBS=(\${LIBS[@]/%/$(build_var LTDL_SHLIB_EXT)}); echo "\${LIBS[@]/#/lib}" ;;
+		--libfiles) LIBS=(\${COMPONENTS[@]#* }); LIBS=(\${LIBS[@]/%/$(build_var LTDL_SHLIB_EXT)}); echo "\${LIBS[@]/#/\${PREFIX}/lib$(build_var LLVM_LIBDIR_SUFFIX)/lib}" ;;
+		--components) echo "\${COMPONENTS[@]% *}" ;;
+		--targets-built) echo $(build_var LLVM_TARGETS_BUILT) ;;
+		--host-target) echo $(build_var LLVM_HOST_TRIPLE) ;;
+		--build-mode) echo $(build_var LLVM_BUILDMODE) ;;
+		--build-system) echo $(build_var LLVM_BUILD_SYSTEM) ;;
+		--has-rtti) echo $(build_yes_no LLVM_HAS_RTTI) ;;
+		--has-global-isel) echo $(build_on_off LLVM_HAS_GLOBAL_ISEL) ;;
+		--shared-mode) echo shared ;;
+	esac
+}
+
+for ARG in "\${@}"; do
+	handle_arg "\${ARG}"
+done
+EOF
