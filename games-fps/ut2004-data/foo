@@ -1,0 +1,45 @@
+def foo(dir)
+  Dir.entries(dir).sort.each_with_object({}) do |e,h|
+    next if e == "." or e == ".." or e.start_with?(".keep")
+    j = File.join(dir, e)
+    if File.directory?(j)
+      h[e] = foo(j)
+    else
+      h[e] = nil
+    end
+  end
+end
+
+def wrap(a)
+  case a.size
+  when 0
+    ""
+  when 1
+    a.first
+  else
+    "{" + a.join(",") + "}"
+  end    
+end
+
+def bar(d, es)
+  sub = es.map { |d, es| es ? bar(d, es) : d }
+  brace = case sub.size
+  when 0
+    ""
+  when 1
+    sub.first
+  else
+    exts, nexts = sub.partition { |s| s =~ /\.\w+$/ }
+    sub = nexts + exts.group_by { |f| File.extname f }.map do |ext,fs|
+      fs.group_by { |f| f.scan(/^[^.]+?[-_]/).first.to_s }.map do |pref,gfs|
+        pref + wrap(gfs.map { |f| f[(pref.size)..(-ext.size-1)] }) + ext
+      end
+    end
+    wrap sub
+  end
+  File.join(d, brace)
+end
+
+x = foo("."); nil
+y = x.map { |d, es| bar(d, es) }
+puts y

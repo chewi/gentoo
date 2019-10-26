@@ -3,7 +3,7 @@
 
 EAPI=7
 
-inherit cdrom desktop eutils portability unpacker xdg-utils
+inherit cdrom check-reqs desktop eutils portability unpacker xdg-utils
 
 DESCRIPTION="Unreal Tournament 2004 - This is the data portion of UT2004"
 HOMEPAGE="https://liandri.beyondunreal.com/Unreal_Tournament_2004"
@@ -11,6 +11,7 @@ HOMEPAGE="https://liandri.beyondunreal.com/Unreal_Tournament_2004"
 LICENSE="ut2003"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
+IUSE="doc l10n_de l10n_es l10n_fr l10n_it l10n_ko l10n_zh"
 
 BDEPEND="
 	games-util/uz2unpack
@@ -20,43 +21,35 @@ BDEPEND="
 PDEPEND=">=games-fps/ut2004-3369.3-r2"
 RDEPEND="!games-fps/ut2004-ded"
 
+CHECKREQS_DISK_BUILD="7G"
+
 S="${WORKDIR}"
 
-check_dvd() {
-	# The following is a nasty mess to determine if we are installing from
-	# a DVD or from multiple CDs. Anyone feel free to submit patches to this
-	# to bugs.gentoo.org as I know it is a very ugly hack.
+locale_mismatch() {
+	case "${1}" in
+		*.det|*.det_*|4_UT2004_*_German*) ! use l10n_de ;;
+		*.est|*.est_*|4_UT2004_*_Spanish) ! use l10n_es ;;
+		*.frt|*.frt_*|4_UT2004_*_French)  ! use l10n_fr ;;
+		*.itt|*.itt_*|4_UT2004_*_Italian) ! use l10n_it ;;
+		*.kot|*.kot_*) ! use l10n_ko ;;
+		*.[st]mt|*.[st]mt_*) ! use l10n_zh ;;
+		*) return 1 ;;
+	esac
+}
 
-	USE_DVD=
-	USE_ECE_DVD=
-	USE_MIDWAY_DVD=
-	USE_GERMAN_MIDWAY_DVD=
+ci_op() {
+	local op="${1}" prefix="${2}" src="${3}" dest="${4}" file match
+	shift 4
 
-	local point foo fs mnts=()
-	while read point foo fs foo ; do
-		[[ ${fs} =~ (9660|udf) ]] && mnts+=( "${point//\040/ }" )
-	done < <(get_mounts)
-
-	local r
-	for r in "${CD_ROOT}" "${CD_ROOT_1}" "${mnts[@]}" ; do
-		if [[ -n ${r} ]] ; then
-			einfo "Searching ${r}"
-			if [[ -f ${r}/AutoRunData/Unreal.ico ]] \
-				&& [[ -f ${r}/Disk5/data6.cab ]] ; then
-				USE_MIDWAY_DVD=1
-				USE_DVD=1
-			elif [[ -f ${r}/autorund/unreal.ico ]] \
-				&& [[ -f ${r}/disk7/data8.cab ]] ; then
-				USE_MIDWAY_DVD=1
-				USE_GERMAN_MIDWAY_DVD=1
-				USE_DVD=1
-			else
-				[[ -d ${r}/CD1 ]] && USE_DVD=1
-				[[ -d ${r}/CD7 ]] && USE_ECE_DVD=1
-			fi
-		fi
+	for file in "${@}" ; do
+		match=$(_cdrom_glob_match "${prefix}" "${src}/${file}")
+		[[ -z ${match} ]] && die "Could not find ${prefix}/${src}/${file}"
+		"${op}" -vf "${prefix}/${match}" "${dest}/${file}" || die
 	done
 }
+
+ci_cp() { ci_op cp "${@}"; }
+ci_mv() { ci_op mv "${@}"; }
 
 grabdirs() {
 	local d
@@ -91,69 +84,76 @@ ut_unpack() {
 	fi
 }
 
-pkg_setup() {
-	ewarn "This is a huge package. If you do not have at least 7GB of free"
-	ewarn "disk space in ${PORTAGE_TMPDIR} and also in /opt"
-	ewarn "then you should abort this installation now and free up some space."
-}
-
 src_unpack() {
-	check_dvd
+	cdrom_get_cds \
+		AutoRunData/Unreal.ico:autorund/unreal.ico:CD6/Sounds/TauntPack.det_uax.uz2:System/UT2004.ini \
+		:::Textures/2K4Fonts.utx.uz2 \
+		:::Textures/ONSDeadVehicles-TX.utx.uz2 \
+		:::StaticMeshes/AlienTech.usx.uz2 \
+		:::Speech/ons.xml \
+		:::Sounds/TauntPack.det_uax.uz2
 
-	if [[ ${USE_DVD} -eq 1 ]] ; then
-		if [[ ${USE_MIDWAY_DVD} -eq 1 ]] ; then
-			# Is 1 DVD, either UT2004-only or Anthology
-			if [[ ${USE_GERMAN_MIDWAY_DVD} -eq 1 ]] ; then
-				cdrom_get_cds autorund/unreal.ico
-			else
-				cdrom_get_cds AutoRunData/Unreal.ico
-			fi
-		else
-			DISK1="CD1"
-			DISK2="CD2"
-			DISK3="CD3"
-			DISK4="CD4"
-			DISK5="CD5"
-			DISK6="CD6"
-			if [[ ${USE_ECE_DVD} -eq 1 ]] ; then
-				# Editor's Choice Edition DVD
-				cdrom_get_cds \
-					${DISK1}/System/UT2004.ini \
-					${DISK2}/Textures/2K4Fonts.utx.uz2 \
-					${DISK3}/Textures/ONSDeadVehicles-TX.utx.uz2 \
-					${DISK4}/Textures/XGameShaders2004.utx.uz2 \
-					${DISK5}/Speech/ons.xml \
-					${DISK6}/Sounds/TauntPack.det_uax.uz2
-			else
-				# Original DVD
-				cdrom_get_cds \
-					${DISK1}/System/UT2004.ini \
-					${DISK2}/Textures/2K4Fonts.utx.uz2 \
-					${DISK3}/Textures/ONSDeadVehicles-TX.utx.uz2 \
-					${DISK4}/StaticMeshes/AlienTech.usx.uz2 \
-					${DISK5}/Speech/ons.xml \
-					${DISK6}/Sounds/TauntPack.det_uax.uz2
-			fi
-		fi
-	else
-		# 6 CDs
-		cdrom_get_cds \
-			System/UT2004.ini \
-			Textures/2K4Fonts.utx.uz2 \
-			Textures/ONSDeadVehicles-TX.utx.uz2 \
-			StaticMeshes/AlienTech.usx.uz2 \
-			Speech/ons.xml \
-			Sounds/TauntPack.det_uax.uz2
-	fi
+	case ${CDROM_SET} in
+		0) einfo "Found Midway Unreal Anthology DVD" ;;
+		1) einfo "Found German Midway Unreal Anthology DVD" ;;
+		2) einfo "Found standalone UT2004 DVD (original or Editor's Choice Edition)" ;;
+		3) einfo "Found UT2004 CD 1 of 6" ;;
+	esac
 
-	if [[ ${USE_MIDWAY_DVD} -ne 1 ]] ; then
-		unpack_makeself "${CDROM_ROOT}"/linux-installer.sh
-		use x86 && unpack ./linux-x86.tar
-		use amd64 && unpack ./linux-amd64.tar
-	fi
+	case ${CDROM_SET} in
+		2|3) unpack_makeself "${CDROM_ROOT}"/linux-installer.sh
+			 use x86 && unpack ./linux-x86.tar
+			 use amd64 && unpack ./linux-amd64.tar ;;
+	esac
 }
 
 src_install() {
+	local Ddir="${ED}"/opt/ut2004
+
+	case ${CDROM_SET} in
+		0|1)
+			# Symlinks for unshield. These files need to be in the same
+			# directory but on the disk, they are not for some reason.
+			ln -snf "${CDROM_ROOT}"/{Disk1/data1.hdr,Disk*/data*.cab} "${T}"/ || die
+
+			local G
+			for G in $(unshield g "${T}"/data1.cab || die) ; do
+				if [[ ${G} = 4_UT2004_* ]] &&
+					   ! ( [[ ${G} = 4_UT2004_Manual_* ]] && ! use doc ) &&
+					   ! locale_mismatch "${G}" ; then
+					unshield -g "${G}" x "${T}"/data1.cab || die
+				fi
+			done
+
+			ci_mv . 4_UT2004_Help Help "${HELP[@]}"
+			ci_mv . 4_UT2004_Music Music "${MUSIC[@]}"
+			ci_mv . 4_UT2004_Maps Maps "${MAPS[@]}"
+			ci_mv . 4_UT2004_Sounds_All Sounds "${SOUNDS[@]}"
+			ci_mv . 4_UT2004_Sounds_English Sounds "${LOCALIZED_SOUNDS[@]}"
+			ci_mv . 4_UT2004_System_All System "${SYSTEM_ALL[@]}"
+			ci_mv . 4_UT2004_System_English System "${SYSTEM_EN[@]}"
+			ci_mv . 4_UT2004_Textures Textures "${TEXTURES_LOW[@]}"
+
+			for flag_lang in "de German" "es Spanish" "fr French" "it Italian" ; do
+				flag=${flag_lang% *}
+				lang=${flag_lang#* }
+
+				if use l10n_${flag} ; then
+					mkdir -p Sounds/${flag}t || die
+					ci_mv . 4_UT2004_Sounds_${lang} Sounds/${flag}t "${LOCALIZED_SOUNDS[@]}"
+					ci_mv . 4_UT2004_System_${lang} System "${LOCALIZED_SYSTEM[@]/%/.${flag}t}"
+				fi
+			done
+
+			if use doc ; then
+				mv -vf 4_UT2004_Manual_English/Manual.pdf manual_en.pdf || die
+			fi
+
+			rm -rf 4_UT2004_*
+			;;
+	esac
+
+	die
 	local j
 	local Ddir="${ED}"/opt/ut2004
 
@@ -299,19 +299,14 @@ src_install() {
 		doins "${CDROM_ROOT}"/${DISK1}/Manual/Manual.pdf
 		insinto /opt/ut2004/Benchmark/Stuff
 		doins -r "${CDROM_ROOT}"/${DISK1}/Benchmark/Stuff/.
-		cdrom_load_next_cd
 
 		local diskno
-		for diskno in {2..5} ; do
+		for diskno in {2..6} ; do
+			[[ ${CDROM_SET} = 3 ]] && cdrom_load_next_cd
 			einfo "Copying files from Disk ${diskno}..."
 			local varname="DISK${diskno}"
 			grabdirs ${!varname}
-			cdrom_load_next_cd
 		done
-
-		# Disk 6
-		einfo "Copying files from Disk 6..."
-		grabdirs "${DISK6}"
 
 		# Install extra help files
 		insinto /opt/ut2004/Help
