@@ -1,0 +1,33 @@
+From dfbda4efa7314345ec146d1311b375aea9e35eae Mon Sep 17 00:00:00 2001
+From: James Le Cuirot <chewi@gentoo.org>
+Date: Sat, 17 Aug 2019 12:04:33 +0100
+Subject: [PATCH] Allow library, execute, and headers to be installed
+
+---
+ CMakeLists.txt | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index e23bc33..3afc948 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -8,6 +8,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+ find_package(Zip REQUIRED)
+ 
+ add_library(mcpelauncher-extract-lib include/mcpelauncher/zip_extractor.h lib/zip_extractor.cpp)
++file(GLOB EXTRACT_HEADERS include/mcpelauncher/*.h)
++set_target_properties(mcpelauncher-extract-lib PROPERTIES PUBLIC_HEADER "${EXTRACT_HEADERS}")
+ target_include_directories(mcpelauncher-extract-lib PUBLIC include/)
+ target_include_directories(mcpelauncher-extract-lib PUBLIC ${LIBZIP_INCLUDE_DIRS})
+ target_link_libraries(mcpelauncher-extract-lib ${LIBZIP_LIBRARIES})
+@@ -15,3 +17,7 @@ target_link_libraries(mcpelauncher-extract-lib ${LIBZIP_LIBRARIES})
+ add_executable(mcpelauncher-extract src/main.cpp include/mcpelauncher/minecraft_extract_utils.h)
+ target_link_libraries(mcpelauncher-extract mcpelauncher-extract-lib)
+ 
++install(TARGETS mcpelauncher-extract mcpelauncher-extract-lib
++        COMPONENT mcpelauncher-extract
++        EXCLUDE_FROM_ALL
++        PUBLIC_HEADER DESTINATION include/mcpelauncher)
+-- 
+2.21.0
+

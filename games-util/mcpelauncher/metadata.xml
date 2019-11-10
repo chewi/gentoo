@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "http://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+	<maintainer type="project">
+		<email>games@gentoo.org</email>
+		<name>Gentoo Games Project</name>
+	</maintainer>
+	<longdescription>This project brings Minecraft Bedrock Edition, available on many other platforms, to Linux and macOS. Officially, these two platforms can only run the original Java Edition. It runs the native libraries from the Android version directly on your computer. This is accomplished by fixing the incompatibilities between the libc used on Android and the one used on desktop Linux or OS X (Android - Bionic; Linux - glibc). This is a simple compatibility layer which doesn’t impact performance in any significant way; it’s similar to Wine, but much more lightweight and simple. Aditionally, all Android-specific code has been rewritten to run on Linux (AppPlatform, Store, Xbox Live, etc.).</longdescription>
+	<upstream>
+		<remote-id type="github">minecraft-linux/mcpelauncher-manifest</remote-id>
+	</upstream>
+	<use>
+		<flag name="client">Build the game client</flag>
+		<flag name="gui">Depend on GUI to download, extract, and start the game</flag>
+		<flag name="server">Build the dedicated server</flag>
+	</use>
+</pkgmetadata>

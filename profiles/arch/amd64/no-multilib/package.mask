@@ -125,6 +125,8 @@ games-strategy/knights-demo
 games-strategy/majesty-demo
 games-strategy/smac
 games-strategy/spaz
+games-util/mcpelauncher
+games-util/mcpelauncher-ui
 media-sound/aucdtect
 media-sound/ventrilo-server-bin
 media-video/binkplayer

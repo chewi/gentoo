@@ -1,0 +1,192 @@
+Submodule arg-parser contains modified content
+diff --git a/arg-parser/CMakeLists.txt b/arg-parser/CMakeLists.txt
+index 5358bbf..4d8c05c 100644
+--- a/arg-parser/CMakeLists.txt
++++ b/arg-parser/CMakeLists.txt
+@@ -3,4 +3,5 @@ cmake_minimum_required (VERSION 2.6)
+ project(argparser LANGUAGES CXX)
+ 
+ add_library(argparser INTERFACE)
++target_compile_features(argparser INTERFACE cxx_std_11)
+ target_include_directories(argparser INTERFACE include/)
+\ No newline at end of file
+Submodule base64 contains modified content
+diff --git a/base64/CMakeLists.txt b/base64/CMakeLists.txt
+index a33b56e..3acd4aa 100644
+--- a/base64/CMakeLists.txt
++++ b/base64/CMakeLists.txt
+@@ -3,4 +3,5 @@ cmake_minimum_required (VERSION 2.6)
+ project(base64 LANGUAGES CXX)
+ 
+ add_library(base64 include/base64.h src/base64.cpp)
++target_compile_features(base64 PUBLIC cxx_std_11)
+ target_include_directories(base64 PUBLIC include/)
+\ No newline at end of file
+Submodule daemon-utils contains modified content
+diff --git a/daemon-utils/client/CMakeLists.txt b/daemon-utils/client/CMakeLists.txt
+index ba10096..10b518b 100644
+--- a/daemon-utils/client/CMakeLists.txt
++++ b/daemon-utils/client/CMakeLists.txt
+@@ -3,5 +3,6 @@ cmake_minimum_required (VERSION 2.6)
+ project(daemon-client-utils LANGUAGES CXX)
+ 
+ add_library(daemon-client-utils include/daemon_utils/daemon_launcher.h src/daemon_launcher.cpp include/daemon_utils/launchable_service_client.h)
++target_compile_features(daemon-client-utils PUBLIC cxx_std_11)
+ target_include_directories(daemon-client-utils PUBLIC include/)
+ target_link_libraries(daemon-client-utils logger simpleipc file-util)
+\ No newline at end of file
+diff --git a/daemon-utils/server/CMakeLists.txt b/daemon-utils/server/CMakeLists.txt
+index 9b8f6d3..58a5f27 100644
+--- a/daemon-utils/server/CMakeLists.txt
++++ b/daemon-utils/server/CMakeLists.txt
+@@ -3,5 +3,6 @@ cmake_minimum_required (VERSION 2.6)
+ project(daemon-server-utils LANGUAGES CXX)
+ 
+ add_library(daemon-server-utils include/daemon_utils/auto_shutdown_service.h src/auto_shutdown_service.cpp)
++target_compile_features(daemon-server-utils PUBLIC cxx_std_11)
+ target_include_directories(daemon-server-utils PUBLIC include/)
+ target_link_libraries(daemon-server-utils logger simpleipc file-util)
+\ No newline at end of file
+Submodule file-util contains modified content
+diff --git a/file-util/CMakeLists.txt b/file-util/CMakeLists.txt
+index 4057edb..ba377dc 100644
+--- a/file-util/CMakeLists.txt
++++ b/file-util/CMakeLists.txt
+@@ -1,10 +1,9 @@
+ cmake_minimum_required (VERSION 2.6)
+ 
+-set(CMAKE_CXX_STANDARD 11)
+-
+ project(file-util LANGUAGES CXX)
+ 
+ add_library(file-util include/FileUtil.h src/FileUtil.cpp include/EnvPathUtil.h src/EnvPathUtil.cpp)
++target_compile_features(file-util PUBLIC cxx_std_11)
+ if (APPLE)
+     target_sources(file-util PRIVATE src/EnvPathUtil_MacOS.mm)
+ endif()
+Submodule logger contains modified content
+diff --git a/logger/CMakeLists.txt b/logger/CMakeLists.txt
+index 0e6da04..c1e5ff2 100644
+--- a/logger/CMakeLists.txt
++++ b/logger/CMakeLists.txt
+@@ -3,4 +3,5 @@ cmake_minimum_required (VERSION 2.6)
+ project(logger LANGUAGES CXX)
+ 
+ add_library(logger include/log.h src/log.cpp)
++target_compile_features(logger PUBLIC cxx_std_11)
+ target_include_directories(logger PUBLIC include/)
+\ No newline at end of file
+Submodule msa contains modified content
+diff --git a/msa/CMakeLists.txt b/msa/CMakeLists.txt
+index 0bcf0fe..a6d8661 100644
+--- a/msa/CMakeLists.txt
++++ b/msa/CMakeLists.txt
+@@ -8,6 +8,7 @@ endif()
+ find_package(CURL REQUIRED)
+ 
+ add_library(msa src/account.cpp src/device_auth.cpp src/login_manager.cpp include/msa/account.h include/msa/device_auth.h include/msa/login_manager.h include/msa/token.h include/msa/compact_token.h include/msa/legacy_token.h include/msa/token_response.h include/msa/storage_manager.h include/msa/scope.h src/network/request.cpp include/msa/network/request.h src/network/server_time.cpp include/msa/network/server_time.h src/network/device_add_request.cpp include/msa/network/device_add_request.h src/network/server_config.cpp include/msa/network/server_config.h include/msa/network/service_exception.h src/network/service_exception.cpp include/msa/parse_exception.h include/msa/xml_utils.h include/msa/network/security_token_request.h src/network/security_token_request.cpp include/msa/network/device_authenticate_request.h src/network/device_authenticate_request.cpp src/token.cpp src/legacy_token.cpp src/compact_token.cpp src/token_response.cpp include/msa/network/account_token_request.h src/network/account_token_request.cpp include/msa/network/request_utils.h src/network/request_utils.cpp include/msa/network/crypto_utils.h src/network/crypto_utils.cpp include/msa/network/xml_sign_context.h src/network/xml_sign_context.cpp src/xml_utils.cpp include/msa/simple_storage_manager.h src/simple_storage_manager.cpp include/msa/token_cache.h include/msa/simple_token_cache.h src/simple_token_cache.cpp include/msa/account_manager.h src/account_manager.cpp src/network/crypto_auto_helper.h include/msa/network/soap_exception.h src/network/soap_exception.cpp)
++target_compile_features(msa PUBLIC cxx_std_11)
+ target_include_directories(msa PUBLIC include/)
+ target_include_directories(msa PRIVATE ${CURL_INCLUDE_DIRS})
+ target_link_libraries(msa logger base64 rapidxml)
+Submodule msa-daemon contains modified content
+diff --git a/msa-daemon/CMakeLists.txt b/msa-daemon/CMakeLists.txt
+index 9c9451a..4339046 100644
+--- a/msa-daemon/CMakeLists.txt
++++ b/msa-daemon/CMakeLists.txt
+@@ -3,6 +3,7 @@ cmake_minimum_required (VERSION 2.6)
+ project(msa-daemon LANGUAGES CXX)
+ 
+ add_executable(msa-daemon src/main.cpp src/MsaService.cpp src/MsaService.h src/MsaUiClient.cpp src/MsaUiClient.h src/MsaUiLauncher.h src/MsaUiHelper.cpp src/MsaUiHelper.h src/MsaErrors.h)
++target_compile_features(msa-daemon PUBLIC cxx_std_11)
+ target_link_libraries(msa-daemon simpleipc msa file-util daemon-client-utils daemon-server-utils argparser)
+ 
+ install(TARGETS msa-daemon RUNTIME COMPONENT msa-daemon DESTINATION bin)
+Submodule msa-daemon-client contains modified content
+diff --git a/msa-daemon-client/CMakeLists.txt b/msa-daemon-client/CMakeLists.txt
+index a6702a0..2175668 100644
+--- a/msa-daemon-client/CMakeLists.txt
++++ b/msa-daemon-client/CMakeLists.txt
+@@ -3,5 +3,6 @@ cmake_minimum_required (VERSION 2.6)
+ project(msa-daemon-client LANGUAGES CXX)
+ 
+ add_library(msa-daemon-client include/msa/client/service_client.h include/msa/client/account.h include/msa/client/service_launcher.h src/service_client.cpp include/msa/client/security_scope.h include/msa/client/token.h src/token.cpp include/msa/client/legacy_token.h include/msa/client/compact_token.h)
++target_compile_features(msa-daemon-client PUBLIC cxx_std_14)
+ target_include_directories(msa-daemon-client PUBLIC include/)
+ target_link_libraries(msa-daemon-client simpleipc logger base64 daemon-client-utils)
+\ No newline at end of file
+Submodule msa-ui-gtk contains modified content
+diff --git a/msa-ui-gtk/CMakeLists.txt b/msa-ui-gtk/CMakeLists.txt
+index 3cf14c8..1a98179 100644
+--- a/msa-ui-gtk/CMakeLists.txt
++++ b/msa-ui-gtk/CMakeLists.txt
+@@ -11,6 +11,7 @@ pkg_check_modules(GTKMM3 REQUIRED gtkmm-3.0)
+ pkg_check_modules(WEBKIT_GTK REQUIRED webkit2gtk-4.0)
+ 
+ add_executable(msa-ui-gtk src/main.cpp src/WebLoginWindow.cpp src/WebLoginWindow.h src/WebView.cpp src/WebView.h src/ExtensionIPCServer.cpp src/ExtensionIPCServer.h src/LoginIPCService.cpp src/LoginIPCService.h src/UIThreadExecutor.cpp src/UIThreadExecutor.h src/PickAccountWindow.cpp src/PickAccountWindow.h src/ProfilePictureManager.cpp src/ProfilePictureManager.h src/MsaDaemonManager.cpp src/MsaDaemonManager.h)
++target_compile_features(msa-ui-gtk PUBLIC cxx_std_14)
+ target_link_libraries(msa-ui-gtk simpleipc daemon-server-utils msa-daemon-client ${GTKMM3_LIBRARIES} ${WEBKIT_GTK_LIBRARIES} ${CURL_LIBRARIES})
+ target_include_directories(msa-ui-gtk PRIVATE ${GTKMM3_INCLUDE_DIRS} ${WEBKIT_GTK_INCLUDE_DIRS} ${CURL_INCLUDE_DIRS})
+ add_dependencies(msa-ui-gtk msa-ui-gtk-extension)
+diff --git a/msa-ui-gtk/extension/CMakeLists.txt b/msa-ui-gtk/extension/CMakeLists.txt
+index 0590c19..0eac984 100644
+--- a/msa-ui-gtk/extension/CMakeLists.txt
++++ b/msa-ui-gtk/extension/CMakeLists.txt
+@@ -7,6 +7,7 @@ pkg_check_modules(GTKMM3 REQUIRED gtkmm-3.0)
+ pkg_check_modules(WEBKIT_GTK REQUIRED webkit2gtk-4.0)
+ 
+ add_library(msa-ui-gtk-extension SHARED main.cpp ExternalObject.cpp ExternalObject.h JSUtils.cpp JSUtils.h IPCClient.cpp IPCClient.h)
++target_compile_features(msa-ui-gtk-extension PUBLIC cxx_std_14)
+ target_link_libraries(msa-ui-gtk-extension ${GTKMM3_LIBRARIES} ${WEBKIT_GTK_LIBRARIES})
+ target_include_directories(msa-ui-gtk-extension PRIVATE ${GTKMM3_INCLUDE_DIRS} ${WEBKIT_GTK_INCLUDE_DIRS})
+ set(${MSA_UI_EXTENSION_PROJECT_NAME}_C_FLAGS ${${MSA_UI_EXTENSION_PROJECT_NAME}_C_FLAGS} ${GTKMM3_CFLAGS_OTHER} ${WEBKIT_GTK_CFLAGS})
+\ No newline at end of file
+Submodule msa-ui-qt contains modified content
+diff --git a/msa-ui-qt/CMakeLists.txt b/msa-ui-qt/CMakeLists.txt
+index 17113f8..7a05c45 100644
+--- a/msa-ui-qt/CMakeLists.txt
++++ b/msa-ui-qt/CMakeLists.txt
+@@ -5,12 +5,11 @@ project(msa-ui-qt)
+ set(CMAKE_INCLUDE_CURRENT_DIR ON)
+ set(CMAKE_AUTOMOC ON)
+ set(CMAKE_AUTORCC ON)
+-set(CMAKE_CXX_STANDARD 11)
+-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+ 
+ find_package(Qt5 COMPONENTS Core Widgets WebEngineWidgets Network REQUIRED)
+ 
+ add_executable(msa-ui-qt src/main.cpp src/webloginwindow.cpp src/webloginwindow.h src/materialbusyindicator.cpp src/materialbusyindicator.h src/loginipcservice.cpp src/loginipcservice.h src/loginuihandler.cpp src/loginuihandler.h src/pickaccountwindow.cpp src/pickaccountwindow.h src/msadaemonmanager.cpp src/msadaemonmanager.h src/msadaemonmanager.cpp src/profilepicturemanager.cpp src/profilepicturemanager.h msaui.qrc)
++target_compile_features(msa-ui-qt PUBLIC cxx_std_11)
+ target_link_libraries(msa-ui-qt Qt5::Core Qt5::Widgets Qt5::WebEngineWidgets Qt5::Network daemon-server-utils msa-daemon-client)
+ 
+ if (APPLE)
+Submodule rapidxml contains modified content
+diff --git a/rapidxml/CMakeLists.txt b/rapidxml/CMakeLists.txt
+index 4ff290c..fd1aab0 100644
+--- a/rapidxml/CMakeLists.txt
++++ b/rapidxml/CMakeLists.txt
+@@ -3,4 +3,5 @@ cmake_minimum_required (VERSION 2.6)
+ project(rapidxml LANGUAGES CXX)
+ 
+ add_library(rapidxml INTERFACE)
++target_compile_features(rapidxml INTERFACE cxx_std_11)
+ target_include_directories(rapidxml INTERFACE include/)
+\ No newline at end of file
+Submodule simple-ipc contains modified content
+diff --git a/simple-ipc/CMakeLists.txt b/simple-ipc/CMakeLists.txt
+index 54fed52..beb649a 100644
+--- a/simple-ipc/CMakeLists.txt
++++ b/simple-ipc/CMakeLists.txt
+@@ -2,11 +2,10 @@ cmake_minimum_required (VERSION 2.6)
+ 
+ project(simpleipc LANGUAGES CXX)
+ 
+-set(CMAKE_CXX_STANDARD 11)
+-
+ find_package(Threads)
+ 
+ add_library(simpleipc include/simpleipc/common/connection.h include/simpleipc/common/connection_handler.h include/simpleipc/server/rpc_handler.h include/simpleipc/common/rpc_call_exception.h include/simpleipc/common/rpc_result.h include/simpleipc/common/io_handler.h include/simpleipc/server/service.h include/simpleipc/server/service_impl.h include/simpleipc/client/service_client.h include/simpleipc/client/service_client_impl.h include/simpleipc/client/rpc_json_call.h include/simpleipc/common/message/message_id.h include/simpleipc/common/message/rpc_message.h include/simpleipc/common/message/response_message.h include/simpleipc/common/message/error_code.h include/simpleipc/common/message/error_message.h include/simpleipc/common/version.h src/common/connection_internal.cpp src/common/connection_internal.h src/client/base_service_client_impl.h src/server/base_service_impl.h src/server/default_rpc_handler.h src/server/default_rpc_handler.cpp src/unix/common/unix_connection.cpp src/unix/common/unix_connection.h src/unix/server/unix_service_impl.cpp src/unix/server/unix_service_impl.h src/unix/client/unix_service_client.cpp src/unix/client/unix_service_client.h src/common/encoding/encoding.h src/common/encoding/encodings.cpp src/common/encoding/encodings.h src/common/encoding/encoding_json.cpp src/common/encoding/encoding_json.h src/common/encoding/encoding_json_cbor.cpp src/common/encoding/encoding_json_cbor.h src/common/encoding/varint.cpp src/common/encoding/varint.h src/server/rpc_handler.cpp src/common/message/error_code.cpp src/common/message/message_container.h src/client/service_client.cpp src/client/rpc_json_call.cpp include/simpleipc/client/rpc_call.h)
++target_compile_features(simpleipc PUBLIC cxx_std_11)
+ 
+ if(APPLE)
+   target_sources(simpleipc PRIVATE src/unix/kqueue_io_handler.cpp src/unix/kqueue_io_handler.h)

@@ -1,0 +1,29 @@
+diff --git a/mcpelauncher-client/CMakeLists.txt b/mcpelauncher-client/CMakeLists.txt
+index bf631f8..1ccf4f1 100644
+diff --git a/mcpelauncher-client/src/main.cpp b/mcpelauncher-client/src/main.cpp
+index 0b0f0ef..8917275 100644
+--- a/mcpelauncher-client/src/main.cpp
++++ b/mcpelauncher-client/src/main.cpp
+@@ -28,10 +28,10 @@
+ #endif
+ #ifdef __i386__
+ #include "cpuid.h"
+-#include "legacy/legacy_patches.h"
+-#include "minecraft_game_wrapper.h"
+ #include "texel_aa_patch.h"
+ #endif
++#include "legacy/legacy_patches.h"
++#include "minecraft_game_wrapper.h"
+ #include <build_info.h>
+ 
+ static std::unique_ptr<ClientAppPlatform> appPlatform;
+@@ -171,7 +171,9 @@ int main(int argc, char *argv[]) {
+ 
+     MinecraftUtils::workaroundShutdownCrash(handle);
+     XboxLivePatches::workaroundShutdownFreeze(handle);
++#ifdef __i386__
+     XboxShutdownPatch::notifyShutdown();
++#endif
+ 
+     XboxLiveHelper::getInstance().shutdown();
+     appPlatform->teardown();

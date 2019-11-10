@@ -1,0 +1,54 @@
+From 94f8b905f8dfb40de3de500dc3752beeef79a36d Mon Sep 17 00:00:00 2001
+From: James Le Cuirot <chewi@gentoo.org>
+Date: Wed, 14 Aug 2019 19:41:43 +0100
+Subject: [PATCH] Add USE_OWN_JSON CMake option to avoid downloading
+ nlohmann_json
+
+Gentoo Linux has this available as a package.
+---
+ CMakeLists.txt | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 47bdd85..a066370 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,7 +1,5 @@
+ cmake_minimum_required(VERSION 3.0)
+ 
+-set(CMAKE_CXX_STANDARD 11)
+-
+ string(TIMESTAMP BUILD_TIMESTAMP "%Y%m%d-%H%M%S" UTC)
+ 
+ find_program(GIT_EXEC git)
+@@ -44,7 +42,12 @@ set(DEB_OS_NAME "none" CACHE STRING "Specifies the target OS for building the de
+ set(QT_RPATH "" CACHE STRING "Sets the install rpath to set for qt-enabled targets")
+ mark_as_advanced(DEB_OS_NAME QT_RPATH)
+ 
+-include(ext/json.cmake)
++option(USE_OWN_JSON "Downloads nlohmann_json as an ExternalProject dependency" ON)
++if (USE_OWN_JSON)
++  include(ext/json.cmake)
++else()
++  find_package(nlohmann_json REQUIRED)
++endif()
+ 
+ add_subdirectory(logger)
+ add_subdirectory(base64)
+-- 
+2.21.0
+
+Submodule msa-ui-gtk contains modified content
+diff --git a/msa-ui-gtk/src/LoginIPCService.cpp b/msa-ui-gtk/src/LoginIPCService.cpp
+index 5321bc4..e7e0e47 100644
+--- a/msa-ui-gtk/src/LoginIPCService.cpp
++++ b/msa-ui-gtk/src/LoginIPCService.cpp
+@@ -62,7 +62,7 @@ void LoginIPCService::handle_open_browser(nlohmann::json const& data, rpc_handle
+                 nlohmann::json res;
+                 auto& prop = res["properties"] = nlohmann::json::object();
+                 for (auto const& p : login_window->get_result())
+-                    prop[p.first] = p.second;
++                    prop[p.first] = std::string(p.second);
+                 handler(simpleipc::rpc_json_result::response(res));
+             } else {
+                 handler(simpleipc::rpc_json_result::error(-501, "Operation cancelled by user"));

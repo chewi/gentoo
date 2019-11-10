@@ -1,0 +1,291 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 65285b8..b0c408f 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -7,7 +7,7 @@ if(NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
+     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
+     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
+ endif()
+-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fno-delete-null-pointer-checks")
++set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-delete-null-pointer-checks")
+ 
+ string(TIMESTAMP BUILD_TIMESTAMP "%Y%m%d-%H%M%S" UTC)
+ 
+Submodule arg-parser contains modified content
+diff --git a/arg-parser/CMakeLists.txt b/arg-parser/CMakeLists.txt
+index 5358bbf..4d8c05c 100644
+--- a/arg-parser/CMakeLists.txt
++++ b/arg-parser/CMakeLists.txt
+@@ -3,4 +3,5 @@ cmake_minimum_required (VERSION 2.6)
+ project(argparser LANGUAGES CXX)
+ 
+ add_library(argparser INTERFACE)
++target_compile_features(argparser INTERFACE cxx_std_11)
+ target_include_directories(argparser INTERFACE include/)
+\ No newline at end of file
+Submodule base64 contains modified content
+diff --git a/base64/CMakeLists.txt b/base64/CMakeLists.txt
+index a33b56e..3acd4aa 100644
+--- a/base64/CMakeLists.txt
++++ b/base64/CMakeLists.txt
+@@ -3,4 +3,5 @@ cmake_minimum_required (VERSION 2.6)
+ project(base64 LANGUAGES CXX)
+ 
+ add_library(base64 include/base64.h src/base64.cpp)
++target_compile_features(base64 PUBLIC cxx_std_11)
+ target_include_directories(base64 PUBLIC include/)
+\ No newline at end of file
+Submodule cll-telemetry contains modified content
+Submodule cll-telemetry 0a80196..d3db024:
+diff --git a/cll-telemetry/CMakeLists.txt b/cll-telemetry/CMakeLists.txt
+index 23e3cbe..9d75209 100644
+--- a/cll-telemetry/CMakeLists.txt
++++ b/cll-telemetry/CMakeLists.txt
+@@ -9,6 +9,7 @@ find_package(Threads REQUIRED)
+ find_package(ZLIB REQUIRED)
+ 
+ add_library(cll-telemetry include/cll/event_manager.h src/event_manager.cpp include/cll/event.h include/cll/event_uploader.h include/cll/configuration.h src/configuration.cpp include/cll/configuration_cache.h include/cll/configuration_manager.h src/json_utils.h src/http/curl_request.cpp src/http/curl_request.h src/http/curl_client.cpp src/http/curl_client.h src/http/curl_error.h include/cll/http/http_response.h include/cll/file_configuration_cache.h src/file_configuration_cache.cpp include/cll/event_batch.h include/cll/file_event_batch.h src/file_event_batch.cpp include/cll/event_serializer.h src/event_serializer.cpp src/event_serializer_extensions.cpp include/cll/event_serializer_extensions.h include/cll/memory_event_batch.h src/memory_event_batch.cpp include/cll/multi_file_event_batch.h src/multi_file_event_batch.cpp include/cll/buffered_event_batch.h src/buffered_event_batch.cpp src/buffered_event_batch_private.h include/cll/task_with_delay_thread.h src/task_with_delay_thread.cpp src/event_uploader.cpp include/cll/event_upload_step.h include/cll/http/http_error.h include/cll/http/http_request.h include/cll/http/http_client.h include/cll/http/mock_http_client.h src/http/mock_http_client.cpp src/http/mock_http_request.h include/cll/event_compressor.h src/event_compressor.cpp)
++target_compile_features(cll-telemetry PUBLIC cxx_std_14)
+ target_include_directories(cll-telemetry PUBLIC include/)
+ target_include_directories(cll-telemetry PRIVATE ${CURL_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS})
+ target_link_libraries(cll-telemetry nlohmann_json logger Threads::Threads ${CURL_LIBRARIES} ${ZLIB_LIBRARIES})
+Submodule daemon-utils contains modified content
+diff --git a/daemon-utils/client/CMakeLists.txt b/daemon-utils/client/CMakeLists.txt
+index ba10096..10b518b 100644
+--- a/daemon-utils/client/CMakeLists.txt
++++ b/daemon-utils/client/CMakeLists.txt
+@@ -3,5 +3,6 @@ cmake_minimum_required (VERSION 2.6)
+ project(daemon-client-utils LANGUAGES CXX)
+ 
+ add_library(daemon-client-utils include/daemon_utils/daemon_launcher.h src/daemon_launcher.cpp include/daemon_utils/launchable_service_client.h)
++target_compile_features(daemon-client-utils PUBLIC cxx_std_11)
+ target_include_directories(daemon-client-utils PUBLIC include/)
+ target_link_libraries(daemon-client-utils logger simpleipc file-util)
+\ No newline at end of file
+diff --git a/daemon-utils/server/CMakeLists.txt b/daemon-utils/server/CMakeLists.txt
+index 9b8f6d3..58a5f27 100644
+--- a/daemon-utils/server/CMakeLists.txt
++++ b/daemon-utils/server/CMakeLists.txt
+@@ -3,5 +3,6 @@ cmake_minimum_required (VERSION 2.6)
+ project(daemon-server-utils LANGUAGES CXX)
+ 
+ add_library(daemon-server-utils include/daemon_utils/auto_shutdown_service.h src/auto_shutdown_service.cpp)
++target_compile_features(daemon-server-utils PUBLIC cxx_std_11)
+ target_include_directories(daemon-server-utils PUBLIC include/)
+ target_link_libraries(daemon-server-utils logger simpleipc file-util)
+\ No newline at end of file
+Submodule epoll-shim contains modified content
+diff --git a/epoll-shim/CMakeLists.txt b/epoll-shim/CMakeLists.txt
+index cb745ae..4e20c8e 100644
+--- a/epoll-shim/CMakeLists.txt
++++ b/epoll-shim/CMakeLists.txt
+@@ -3,8 +3,6 @@ project(epoll C)
+ 
+ set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -m32")
+ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
+-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
+-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
+ set(CMAKE_LIBRARY_ARCHITECTURE "i386-linux-gnu")
+ 
+ set(CMAKE_C_STANDARD 99)
+Submodule file-picker contains modified content
+diff --git a/file-picker/CMakeLists.txt b/file-picker/CMakeLists.txt
+index 0d5a45a..e3b70f4 100644
+--- a/file-picker/CMakeLists.txt
++++ b/file-picker/CMakeLists.txt
+@@ -22,5 +22,6 @@ if (FILEPICKER_USE_COCOA)
+ endif()
+ 
+ add_library(filepicker ${FILEPICKER_SOURCES})
++target_compile_features(filepicker PUBLIC cxx_std_14)
+ target_include_directories(filepicker PUBLIC include/)
+ target_compile_definitions(filepicker PRIVATE ${FILEPICKER_DEFINES})
+\ No newline at end of file
+Submodule file-util contains modified content
+diff --git a/file-util/CMakeLists.txt b/file-util/CMakeLists.txt
+index 4057edb..ba377dc 100644
+--- a/file-util/CMakeLists.txt
++++ b/file-util/CMakeLists.txt
+@@ -1,10 +1,9 @@
+ cmake_minimum_required (VERSION 2.6)
+ 
+-set(CMAKE_CXX_STANDARD 11)
+-
+ project(file-util LANGUAGES CXX)
+ 
+ add_library(file-util include/FileUtil.h src/FileUtil.cpp include/EnvPathUtil.h src/EnvPathUtil.cpp)
++target_compile_features(file-util PUBLIC cxx_std_11)
+ if (APPLE)
+     target_sources(file-util PRIVATE src/EnvPathUtil_MacOS.mm)
+ endif()
+Submodule game-window contains modified content
+diff --git a/game-window/CMakeLists.txt b/game-window/CMakeLists.txt
+index ac79376..3c092bf 100644
+--- a/game-window/CMakeLists.txt
++++ b/game-window/CMakeLists.txt
+@@ -10,6 +10,7 @@ set(GAMEWINDOW_SOURCES_EGLUT src/window_eglut.h src/window_eglut.cpp src/window_
+ set(GAMEWINDOW_SOURCES_GLFW src/window_glfw.h src/window_glfw.cpp src/window_manager_glfw.cpp src/window_manager_glfw.h src/joystick_manager_glfw.cpp src/joystick_manager_glfw.h)
+ 
+ add_library(gamewindow ${GAMEWINDOW_SOURCES})
++target_compile_features(gamewindow PUBLIC cxx_std_14)
+ target_include_directories(gamewindow PUBLIC include/)
+ 
+ if (GAMEWINDOW_SYSTEM STREQUAL "EGLUT")
+Submodule linux-gamepad contains modified content
+diff --git a/linux-gamepad/CMakeLists.txt b/linux-gamepad/CMakeLists.txt
+index 17bd2a2..9c3ff10 100644
+--- a/linux-gamepad/CMakeLists.txt
++++ b/linux-gamepad/CMakeLists.txt
+@@ -8,5 +8,6 @@ find_package(Udev REQUIRED)
+ find_package(Evdev REQUIRED)
+ 
+ add_library(linux-gamepad include/gamepad/gamepad_manager.h include/gamepad/gamepad.h include/gamepad/gamepad_ids.h include/gamepad/gamepad_mapping.h include/gamepad/joystick.h src/gamepad.cpp src/gamepad_mapping.cpp src/gamepad_manager.cpp include/gamepad/joystick_manager.h include/gamepad/callback_list.h include/gamepad/joystick_manager_factory.h src/linux_joystick_manager.cpp src/linux_joystick_manager.h src/linux_joystick.cpp src/linux_joystick.h)
++target_compile_features(linux-gamepad PUBLIC cxx_std_14)
+ target_include_directories(linux-gamepad PUBLIC include/ ${UDEV_INCLUDE_DIRS} ${EVDEV_INCLUDE_DIRS})
+ target_link_libraries(linux-gamepad udev ${UDEV_LIBRARIES} ${EVDEV_LIBRARIES})
+\ No newline at end of file
+Submodule logger contains modified content
+diff --git a/logger/CMakeLists.txt b/logger/CMakeLists.txt
+index 0e6da04..c1e5ff2 100644
+--- a/logger/CMakeLists.txt
++++ b/logger/CMakeLists.txt
+@@ -3,4 +3,5 @@ cmake_minimum_required (VERSION 2.6)
+ project(logger LANGUAGES CXX)
+ 
+ add_library(logger include/log.h src/log.cpp)
++target_compile_features(logger PUBLIC cxx_std_11)
+ target_include_directories(logger PUBLIC include/)
+\ No newline at end of file
+Submodule mcpelauncher-client contains modified content
+Submodule mcpelauncher-client a48cb4c..8091225:
+diff --git a/mcpelauncher-client/CMakeLists.txt b/mcpelauncher-client/CMakeLists.txt
+index bf631f8..1ccf4f1 100644
+--- a/mcpelauncher-client/CMakeLists.txt
++++ b/mcpelauncher-client/CMakeLists.txt
+@@ -6,6 +6,7 @@ git_commit_hash(${CMAKE_CURRENT_SOURCE_DIR} CLIENT_GIT_COMMIT_HASH)
+ configure_file(src/build_info.h.in ${CMAKE_CURRENT_BINARY_DIR}/build_info/build_info.h)
+ 
+ add_executable(mcpelauncher-client src/main.cpp src/client_app_platform.cpp src/client_app_platform.h src/store.cpp src/store.h src/xbox_live_patches.cpp src/xbox_live_patches.h src/fake_jni.cpp src/fake_jni.h src/window_callbacks.cpp src/window_callbacks.h src/http_request_stub.cpp src/http_request_stub.h src/xbox_live_helper.cpp src/xbox_live_helper.h src/minecraft_gamepad_mapping.h src/splitscreen_patch.cpp src/splitscreen_patch.h src/cll_upload_auth_step.cpp src/cll_upload_auth_step.h src/gl_core_patch.cpp src/gl_core_patch.h src/tts_patch.cpp src/tts_patch.h src/hbui_patch.cpp src/hbui_patch.h src/utf8_util.h src/shader_error_patch.cpp src/shader_error_patch.h src/xbox_live_game_interface.cpp src/xbox_live_game_interface.h src/legacy/xbox_live_game_interface_legacy_1_2_3.cpp src/legacy/xbox_live_game_interface_legacy_1_2_3.h src/legacy/xbox_live_game_interface_legacy_1_4.cpp src/legacy/xbox_live_game_interface_legacy_1_4.h src/legacy/xbox_live_game_interface_legacy_1_2.cpp src/legacy/xbox_live_game_interface_legacy_1_2.h src/legacy/legacy_patches.cpp src/legacy/legacy_patches.h src/minecraft_game_wrapper.cpp src/minecraft_game_wrapper.h src/legacy/minecraft_game_wrapper_legacy.h src/legacy/xbox_live_game_interface_legacy_0_15_2.cpp src/legacy/xbox_live_game_interface_legacy_0_15_2.h)
++target_compile_features(mcpelauncher-client PUBLIC cxx_std_14)
+ target_link_libraries(mcpelauncher-client logger mcpelauncher-core gamewindow filepicker msa-daemon-client cll-telemetry argparser)
+ target_include_directories(mcpelauncher-client PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/build_info/)
+ 
+Submodule mcpelauncher-common contains modified content
+diff --git a/mcpelauncher-common/CMakeLists.txt b/mcpelauncher-common/CMakeLists.txt
+index 393162f..5ad0d35 100644
+--- a/mcpelauncher-common/CMakeLists.txt
++++ b/mcpelauncher-common/CMakeLists.txt
+@@ -13,6 +13,7 @@ if (APPLE)
+ endif()
+ 
+ add_library(mcpelauncher-common ${MCPELAUNCHER_COMMON_SOURCES})
++target_compile_features(mcpelauncher-common PUBLIC cxx_std_14)
+ target_include_directories(mcpelauncher-common PUBLIC include/)
+ if (OPENSSL_FOUND)
+     target_link_libraries(mcpelauncher-common ${OPENSSL_CRYPTO_LIBRARY})
+Submodule mcpelauncher-core contains modified content
+diff --git a/mcpelauncher-core/CMakeLists.txt b/mcpelauncher-core/CMakeLists.txt
+index fb04124..d590128 100644
+--- a/mcpelauncher-core/CMakeLists.txt
++++ b/mcpelauncher-core/CMakeLists.txt
+@@ -7,6 +7,7 @@ if (NOT APPLE)
+ endif()
+ 
+ add_library(mcpelauncher-core include/mcpelauncher/app_platform.h include/mcpelauncher/hook.h include/mcpelauncher/mod_loader.h include/mcpelauncher/hybris_utils.h include/mcpelauncher/patch_utils.h include/mcpelauncher/crash_handler.h include/mcpelauncher/minecraft_utils.h src/app_platform.cpp src/hook.cpp src/mod_loader.cpp src/hybris_utils.cpp src/hybris_android_log_hook.cpp src/crash_handler.cpp src/patch_utils.cpp src/minecraft_utils.cpp include/mcpelauncher/minecraft_version.h)
++target_compile_features(mcpelauncher-core PUBLIC cxx_std_14)
+ target_include_directories(mcpelauncher-core PUBLIC include/)
+ target_link_libraries(mcpelauncher-core mcpelauncher-common logger hybris minecraft-symbols minecraft-imported-symbols file-util ${CMAKE_DL_LIBS})
+ 
+Submodule mcpelauncher-just contains modified content
+diff --git a/mcpelauncher-just/CMakeLists.txt b/mcpelauncher-just/CMakeLists.txt
+index 75b79f0..ecbcb06 100644
+--- a/mcpelauncher-just/CMakeLists.txt
++++ b/mcpelauncher-just/CMakeLists.txt
+@@ -3,4 +3,5 @@ cmake_minimum_required (VERSION 2.6)
+ project(mcpelauncher-just LANGUAGES CXX)
+ 
+ add_executable(mcpelauncher-just src/main.cpp)
++target_compile_features(mcpelauncher-just PUBLIC cxx_std_14)
+ target_link_libraries(mcpelauncher-just logger mcpelauncher-core properties-parser)
+Submodule mcpelauncher-server contains modified content
+diff --git a/mcpelauncher-server/CMakeLists.txt b/mcpelauncher-server/CMakeLists.txt
+index 6fd54f1..89fb389 100644
+--- a/mcpelauncher-server/CMakeLists.txt
++++ b/mcpelauncher-server/CMakeLists.txt
+@@ -3,6 +3,7 @@ cmake_minimum_required (VERSION 2.6)
+ project(mcpelauncher-server LANGUAGES CXX)
+ 
+ add_executable(mcpelauncher-server src/main.cpp src/stub_key_provider.h src/server_minecraft_app.h src/server_properties.h src/console_reader.cpp src/console_reader.h src/v8_platform.cpp src/v8_platform.h)
++target_compile_features(mcpelauncher-server PUBLIC cxx_std_14)
+ target_link_libraries(mcpelauncher-server logger mcpelauncher-core properties-parser argparser)
+ 
+ install(TARGETS mcpelauncher-server RUNTIME DESTINATION bin)
+\ No newline at end of file
+Submodule minecraft-imported-symbols contains modified content
+diff --git a/minecraft-imported-symbols/CMakeLists.txt b/minecraft-imported-symbols/CMakeLists.txt
+index 842b1b4..571bb01 100644
+--- a/minecraft-imported-symbols/CMakeLists.txt
++++ b/minecraft-imported-symbols/CMakeLists.txt
+@@ -3,4 +3,5 @@ cmake_minimum_required (VERSION 2.6)
+ project(minecraft-imported-symbols LANGUAGES CXX)
+ 
+ add_library(minecraft-imported-symbols INTERFACE)
++target_compile_features(minecraft-imported-symbols INTERFACE cxx_std_14)
+ target_include_directories(minecraft-imported-symbols INTERFACE include/)
+\ No newline at end of file
+Submodule minecraft-symbols contains modified content
+diff --git a/minecraft-symbols/CMakeLists.txt b/minecraft-symbols/CMakeLists.txt
+index 0f14996..d3878e1 100644
+--- a/minecraft-symbols/CMakeLists.txt
++++ b/minecraft-symbols/CMakeLists.txt
+@@ -11,5 +11,6 @@ else()
+ endif()
+ 
+ add_library(minecraft-symbols ${MINECRAFT_SYMBOLS_SOURCES})
++target_compile_features(minecraft-symbols PUBLIC cxx_std_14)
+ target_include_directories(minecraft-symbols PUBLIC src/)
+ target_link_libraries(minecraft-symbols logger hybris)
+\ No newline at end of file
+Submodule msa-daemon-client contains modified content
+diff --git a/msa-daemon-client/CMakeLists.txt b/msa-daemon-client/CMakeLists.txt
+index a6702a0..2175668 100644
+--- a/msa-daemon-client/CMakeLists.txt
++++ b/msa-daemon-client/CMakeLists.txt
+@@ -3,5 +3,6 @@ cmake_minimum_required (VERSION 2.6)
+ project(msa-daemon-client LANGUAGES CXX)
+ 
+ add_library(msa-daemon-client include/msa/client/service_client.h include/msa/client/account.h include/msa/client/service_launcher.h src/service_client.cpp include/msa/client/security_scope.h include/msa/client/token.h src/token.cpp include/msa/client/legacy_token.h include/msa/client/compact_token.h)
++target_compile_features(msa-daemon-client PUBLIC cxx_std_11)
+ target_include_directories(msa-daemon-client PUBLIC include/)
+ target_link_libraries(msa-daemon-client simpleipc logger base64 daemon-client-utils)
+\ No newline at end of file
+Submodule properties-parser contains modified content
+diff --git a/properties-parser/CMakeLists.txt b/properties-parser/CMakeLists.txt
+index a3c9bea..243c18f 100644
+--- a/properties-parser/CMakeLists.txt
++++ b/properties-parser/CMakeLists.txt
+@@ -3,4 +3,5 @@ cmake_minimum_required (VERSION 2.6)
+ project(properties-parser LANGUAGES CXX)
+ 
+ add_library(properties-parser INTERFACE)
++target_compile_features(properties-parser INTERFACE cxx_std_14)
+ target_include_directories(properties-parser INTERFACE include/)
+\ No newline at end of file
+Submodule simple-ipc contains modified content
+diff --git a/simple-ipc/CMakeLists.txt b/simple-ipc/CMakeLists.txt
+index 54fed52..beb649a 100644
+--- a/simple-ipc/CMakeLists.txt
++++ b/simple-ipc/CMakeLists.txt
+@@ -2,11 +2,10 @@ cmake_minimum_required (VERSION 2.6)
+ 
+ project(simpleipc LANGUAGES CXX)
+ 
+-set(CMAKE_CXX_STANDARD 11)
+-
+ find_package(Threads)
+ 
+ add_library(simpleipc include/simpleipc/common/connection.h include/simpleipc/common/connection_handler.h include/simpleipc/server/rpc_handler.h include/simpleipc/common/rpc_call_exception.h include/simpleipc/common/rpc_result.h include/simpleipc/common/io_handler.h include/simpleipc/server/service.h include/simpleipc/server/service_impl.h include/simpleipc/client/service_client.h include/simpleipc/client/service_client_impl.h include/simpleipc/client/rpc_json_call.h include/simpleipc/common/message/message_id.h include/simpleipc/common/message/rpc_message.h include/simpleipc/common/message/response_message.h include/simpleipc/common/message/error_code.h include/simpleipc/common/message/error_message.h include/simpleipc/common/version.h src/common/connection_internal.cpp src/common/connection_internal.h src/client/base_service_client_impl.h src/server/base_service_impl.h src/server/default_rpc_handler.h src/server/default_rpc_handler.cpp src/unix/common/unix_connection.cpp src/unix/common/unix_connection.h src/unix/server/unix_service_impl.cpp src/unix/server/unix_service_impl.h src/unix/client/unix_service_client.cpp src/unix/client/unix_service_client.h src/common/encoding/encoding.h src/common/encoding/encodings.cpp src/common/encoding/encodings.h src/common/encoding/encoding_json.cpp src/common/encoding/encoding_json.h src/common/encoding/encoding_json_cbor.cpp src/common/encoding/encoding_json_cbor.h src/common/encoding/varint.cpp src/common/encoding/varint.h src/server/rpc_handler.cpp src/common/message/error_code.cpp src/common/message/message_container.h src/client/service_client.cpp src/client/rpc_json_call.cpp include/simpleipc/client/rpc_call.h)
++target_compile_features(simpleipc PUBLIC cxx_std_11)
+ 
+ if(APPLE)
+   target_sources(simpleipc PRIVATE src/unix/kqueue_io_handler.cpp src/unix/kqueue_io_handler.h)

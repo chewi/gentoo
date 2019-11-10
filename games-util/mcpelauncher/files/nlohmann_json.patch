@@ -1,0 +1,32 @@
+From a2cfd819825f2b343f85c6cbed3804b286b05387 Mon Sep 17 00:00:00 2001
+From: James Le Cuirot <chewi@gentoo.org>
+Date: Sun, 11 Aug 2019 22:51:51 +0100
+Subject: [PATCH] Add USE_OWN_JSON CMake option to avoid downloading
+ nlohmann_json
+
+Gentoo Linux has this available as a package.
+---
+ CMakeLists.txt | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index cb1ad13..65285b8 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -64,7 +64,12 @@ if (USE_OWN_CURL)
+     include(ext/curl.cmake)
+ endif()
+ 
+-include(ext/json.cmake)
++option(USE_OWN_JSON "Downloads nlohmann_json as an ExternalProject dependency" ON)
++if (USE_OWN_JSON)
++    include(ext/json.cmake)
++else()
++    find_package(nlohmann_json REQUIRED)
++endif()
+ 
+ option(USE_GAMECONTROLLERDB "Downloads gamecontrollerdb.txt from gabomdq/SDL_GameControllerDB" ON)
+ if (USE_GAMECONTROLLERDB)
+-- 
+2.21.0
+
