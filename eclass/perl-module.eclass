@@ -243,30 +243,64 @@ perl-module_src_configure() {
 		fi
 
 		set -- \
+			--config ar="$(tc-getAR)" \
+			--config cc="$(tc-getCC)" \
+			--config cpp="$(tc-getCPP)" \
+			--config cpprun="$(tc-getCC) -E" \
+			--config ld="$(tc-getCC)" \
+			--config nm="$(tc-getNM)" \
+			--config ranlib="$(tc-getRANLIB)" \
+			--config optimize="${CFLAGS}" \
+			--config ccflags="${PERL_CCFLAGS}" \
+			--config cppflags="${PERL_CPPFLAGS}" \
+			--install_path lib="${VENDOR_LIB}" \
+			--install_path arch="${VENDOR_ARCH}" \
 			--installdirs=vendor \
 			--libdoc= \
 			--destdir="${D}" \
 			--create_packlist=1 \
 			"${myconf_local[@]}"
 		einfo "perl Build.PL" "$@"
-		perl Build.PL "$@" <<< "${pm_echovar}" \
+		sysroot_run perl Build.PL "$@" <<< "${pm_echovar}" \
 				|| die "Unable to build!"
 	elif [[ -f Makefile.PL ]] ; then
 		einfo "Using ExtUtils::MakeMaker"
 		set -- \
+			AR="$(tc-getAR)" \
+			CC="$(tc-getCC)" \
+			CPPRUN="$(tc-getCC) -E" \
+			FULL_AR="$(tc-getAR)" \
+			LD="$(tc-getCC)" \
+			RANLIB="$(tc-getRANLIB)" \
 			PREFIX=${EPREFIX}/usr \
 			INSTALLDIRS=vendor \
 			INSTALLMAN3DIR='none' \
 			DESTDIR="${D}" \
 			"${myconf_local[@]}"
 		einfo "perl Makefile.PL" "$@"
-		perl Makefile.PL "$@" <<< "${pm_echovar}" \
+		PERL5LIB="${SYSROOT}${VENDOR_ARCH}:${PERL5LIB:-${PERLLIB}}" sysroot_run perl Makefile.PL "$@" <<< "${pm_echovar}" \
 				|| die "Unable to build!"
 	fi
 	if [[ ! -f Build.PL && ! -f Makefile.PL ]] ; then
 		einfo "No Make or Build file detected..."
 		return
 	fi
+}
+
+_perl_make() {
+	if [[ ${SYSROOT:-/} != / ]]; then
+		set -- \
+			PERL_ARCHLIB="${ESYSROOT}${ARCH_LIB}" \
+			PERL_ARCHLIBDEP="${ESYSROOT}${ARCH_LIB}" \
+			PERL_INC="${ESYSROOT}${ARCH_LIB}/CORE" \
+			PERL_INCDEP="${ESYSROOT}${ARCH_LIB}/CORE" \
+			XSUBPPDIR="${ESYSROOT}${ARCH_LIB%/*}/ExtUtils" \
+			XSUBPPDEPS="\$(XSUBPPDIR)/typemap \$(XSUBPPDIR)/xsubpp" \
+			XSUBPPARGS="-typemap '\$(XSUBPPDIR)/typemap'$([[ -e typemap ]] && echo " -typemap '${PWD}/typemap'")" \
+			"${@}"
+	fi
+
+	emake "${@}"
 }
 
 # @FUNCTION: perl-module_src_compile
@@ -298,7 +332,7 @@ perl-module_src_compile() {
 		set -- \
 			OTHERLDFLAGS="${LDFLAGS}" \
 			"${mymake_local[@]}"
-		emake "$@"
+		_perl_make "$@"
 	fi
 }
 
@@ -405,7 +439,7 @@ perl-module_src_install() {
 		else
 			local myinst_local=("${myinst[@]}")
 		fi
-		emake "${myinst_local[@]}" ${mytargets}
+		_perl_make "${myinst_local[@]}" ${mytargets}
 	fi
 
 	case ${EAPI} in

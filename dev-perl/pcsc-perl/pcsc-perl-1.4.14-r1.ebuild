@@ -3,7 +3,7 @@
 
 EAPI=8
 
-inherit perl-module
+inherit perl-module toolchain-funcs
 
 DESCRIPTION="A Perl Module for PC/SC SmartCard access"
 HOMEPAGE="http://ludovic.rousseau.free.fr/softwares/pcsc-perl/"
@@ -18,3 +18,10 @@ RESTRICT="test" # actually accesses the pcsc-lite daemon
 DEPEND="
 	>=sys-apps/pcsc-lite-1.6.0
 "
+
+src_compile() {
+	local DIST_MAKE=(
+		INC="$($(tc-getPKG_CONFIG) --cflags libpcsclite)"
+	)
+	perl-module_src_compile
+}

@@ -28,6 +28,45 @@ esac
 
 perlinfo_done=false
 
+qemu_arch() {
+	case "${CHOST}" in
+		armeb*) echo armeb ;;
+		arm*) echo arm ;;
+		*) echo "${CHOST%%-*}" ;;
+	esac
+}
+
+sysroot_run() {
+	if [[ -z ${SYSROOT} ]]; then
+		"${@}"
+		return $?
+	fi
+
+	local \
+		broot_qemu=${BROOT}/usr/bin/qemu-$(qemu_arch)
+		sysroot_qemu=${SYSROOT}${broot_qemu}
+
+	if [[ -x ${broot_qemu} && ! -f ${sysroot_qemu} ]]; then
+		SANDBOX_WRITE+=":${SYSROOT}" install -D -m0644 /dev/null "${sysroot_qemu}" ||
+			die "Please touch the ${sysroot_qemu} file and retry"
+	fi
+
+	SANDBOX_WRITE+=":/proc/self/uid_map:/proc/self/gid_map:/proc/self/setgroups" unshare --mount --map-root-user "${BASH}" -e -s -- "${@}" <<-EOF1
+		[[ -x "${broot_qemu}" ]] && mount --bind -o ro "${broot_qemu}" "${sysroot_qemu}"
+
+		mount --rbind /dev "${SYSROOT}"/dev
+		mount --rbind /proc "${SYSROOT}"/proc
+		mount --rbind /sys "${SYSROOT}"/sys
+		mount --rbind /tmp "${SYSROOT}"/tmp
+		mount --rbind "${BROOT}"/var "${ESYSROOT}"/var
+
+		exec chroot "${SYSROOT}" "${EPREFIX}"/bin/sh -e -s -- "\${@}" <<-EOF2
+			cd "${EPREFIX}${PWD#${BROOT}}"
+			exec "\\\${@}"
+		EOF2
+	EOF1
+}
+
 # @FUNCTION: perl_set_version
 # @DESCRIPTION:
 # Extract version information and installation paths from the current Perl
@@ -51,7 +90,9 @@ perl_set_version() {
 	perlinfo_done=true
 
 	local f version install{{site,vendor}{arch,lib},archlib}
-	eval "$(perl -V:{version,install{{site,vendor}{arch,lib},archlib}} )"
+	eval "$(sysroot_run perl -V:{ccflags,cppflags,ld,version,install{{site,vendor}{arch,lib},archlib}} )"
+	PERL_CCFLAGS=${ccflags}
+	PERL_CPPFLAGS=${cppflags}
 	PERL_VERSION=${version}
 	SITE_ARCH=${installsitearch}
 	SITE_LIB=${installsitelib}
@@ -373,7 +414,7 @@ perl_has_module() {
 	[[ $# -gt 0 ]] || die "${FUNCNAME}: No module name provided"
 	[[ $# -lt 2 ]] || die "${FUNCNAME}: Too many parameters ($#)"
 
-	perl -we 'my $mn = $ARGV[0];
+	sysroot_run perl -we 'my $mn = $ARGV[0];
 		$mn =~ s{(::|\x{27})}{/}g;
 		for(@INC){
 			next if ref $_;
@@ -412,7 +453,7 @@ perl_has_module_version() {
 	[[ $# -gt 1 ]] || die "${FUNCNAME}: No module version provided"
 	[[ $# -lt 3 ]] || die "${FUNCNAME}: Too many parameters ($#)"
 
-	perl -we 'my $mn = $ARGV[0];
+	sysroot_run perl -we 'my $mn = $ARGV[0];
 		$mn =~ s{(::|\x{27})}{/}g;
 		exit ( eval {
 			require qq[${mn}.pm];
@@ -460,7 +501,7 @@ perl_get_module_version() {
 	# Todo: What do we do if require fails? spew to stderr
 	# or stay silent?
 
-	perl -we 'my $mn = $ARGV[0];
+	sysroot_run perl -we 'my $mn = $ARGV[0];
 		$mn =~ s{(::|\x{27})}{/}g;
 		local $@;
 		eval { require qq[${mn}.pm]; 1 } or do {
@@ -497,7 +538,7 @@ perl_get_raw_vendorlib() {
 
 	[[ $# -lt 1 ]] || die "${FUNCNAME}: Too many parameters ($#)"
 
-	perl -MConfig \
+	sysroot_run perl -MConfig \
 		-e'exists $Config{$ARGV[0]} || die qq{No such Config key "$ARGV[0]"};
 		   print $Config{$ARGV[0]};
 		   exit 0' -- "installvendorlib" || die "Can't extract installvendorlib from Perl Configuration"
@@ -520,7 +561,7 @@ perl_get_vendorlib() {
 
 	# Requires perl 5.14 for /r attribute of s///
 	# Just in case somebody out there is stuck in a time warp: upgrade perl first
-	perl -M5.014 -MConfig \
+	sysroot_run perl -M5.014 -MConfig \
 		-e'exists $Config{$ARGV[0]} || die qq{No such Config key "$ARGV[0]"};
 		   print $Config{$ARGV[0]} =~ s{\A\Q$ARGV[1]\E}{}r;
 		   exit 0' -- "installvendorlib" "$EPREFIX" || die "Can't extract installvendorlib from Perl Configuration"

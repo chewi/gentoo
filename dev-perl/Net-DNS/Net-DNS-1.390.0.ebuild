@@ -54,10 +54,6 @@ src_prepare() {
 	fi
 }
 
-src_compile() {
-	emake FULL_AR="$(tc-getAR)" OTHERLDFLAGS="${LDFLAGS}"
-}
-
 src_test() {
 	perl_rm_files t/00-pod.t
 	if ! has network ${DIST_TEST_OVERRIDE:-${DIST_TEST:-do parallel}}; then

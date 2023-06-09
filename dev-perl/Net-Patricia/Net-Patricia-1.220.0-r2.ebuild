@@ -22,7 +22,3 @@ RDEPEND="dev-perl/Net-CIDR-Lite
 BDEPEND="${RDEPEND}"
 
 PATCHES=("${FILESDIR}/${PN}-1.22-no-lnsl.patch")
-
-src_compile() {
-	emake AR="$(tc-getAR)" OTHERLDFLAGS="${LDFLAGS}"
-}
