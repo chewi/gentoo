@@ -1,0 +1,77 @@
+From 5b1eac1fdb5569ce42588d556d39fb06f7d9052f Mon Sep 17 00:00:00 2001
+From: James Le Cuirot <chewi@gentoo.org>
+Date: Sun, 19 Jul 2020 22:21:32 +0100
+Subject: [PATCH 1/2] Add missing zlib dependency to CMake
+
+---
+ src/CMakeLists.txt | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index dae02413..e4b144d0 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -6,6 +6,8 @@ configure_file(version.h.in version.h)
+ set(lookout_dir ${PROJECT_SOURCE_DIR}/prereqs)
+ 
+ find_package(OpenGL REQUIRED)
++find_package(ZLIB REQUIRED)
++
+ find_package(FLTK)
+ if(NOT FLTK_FOUND)
+     if(WIN32)
+@@ -215,7 +217,7 @@ if(APPLE)
+     string(REPLACE "libpng.dylib" "libpng.a" PNG_LIBRARIES "${PNG_LIBRARIES}" )
+ endif()
+ 
+-target_link_libraries(eureka PRIVATE ${FLTK_LIBRARIES} ${OPENGL_LIBRARIES})
++target_link_libraries(eureka PRIVATE ${FLTK_LIBRARIES} ${ZLIB_LIBRARIES} ${OPENGL_LIBRARIES})
+ if(APPLE)
+     target_link_libraries(eureka PRIVATE ${JPEG_LIBRARIES} ${PNG_LIBRARIES})
+ endif()
+@@ -223,6 +225,7 @@ endif()
+ target_include_directories(eureka PRIVATE
+     ${PROJECT_SOURCE_DIR}
+     ${FLTK_INCLUDE_DIR}
++    ${ZLIB_INCLUDE_DIRS}
+     ${OPENGL_INCLUDE_DIR}
+ )
+ 
+-- 
+2.26.2
+
+From a136290523852ae907744c050b27ac2c3a21a5c2 Mon Sep 17 00:00:00 2001
+From: James Le Cuirot <chewi@gentoo.org>
+Date: Sun, 19 Jul 2020 22:52:13 +0100
+Subject: [PATCH 2/2] Add ENABLE_OPENGL option to CMake
+
+This defaults to ON. It might have been possible to let FLTK handle
+the OpenGL dependency but Eureka uses OpenGL directly in one place.
+---
+ src/CMakeLists.txt | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index e4b144d0..03905766 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -5,7 +5,15 @@ configure_file(version.h.in version.h)
+ 
+ set(lookout_dir ${PROJECT_SOURCE_DIR}/prereqs)
+ 
+-find_package(OpenGL REQUIRED)
++option(ENABLE_OPENGL "Use OpenGL instead of software rendering" ON)
++
++if(ENABLE_OPENGL)
++    find_package(OpenGL REQUIRED)
++else()
++    set(FLTK_SKIP_OPENGL TRUE)
++    target_compile_definitions(eureka PRIVATE NO_OPENGL)
++endif()
++
+ find_package(ZLIB REQUIRED)
+ 
+ find_package(FLTK)
+-- 
+2.26.2
+
