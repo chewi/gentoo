@@ -400,6 +400,48 @@ cmake_src_prepare() {
 	_CMAKE_SRC_PREPARE_HAS_RUN=1
 }
 
+cmake_build_toolchain_file() {
+	tc-env_build cmake_toolchain_file "${CBUILD}"
+}
+
+cmake_toolchain_file() {
+	local myCC=$(tc-getCC) myCXX=$(tc-getCXX) myFC=$(tc-getFC)
+	local toolchain_file=${BUILD_DIR}/${1-${CHOST}}-toolchain.cmake
+
+	cat > ${toolchain_file} <<- _EOF_ || die
+		set(CMAKE_ASM_COMPILER "${myCC/ /;}")
+		set(CMAKE_ASM-ATT_COMPILER "${myCC/ /;}")
+		set(CMAKE_C_COMPILER "${myCC/ /;}")
+		set(CMAKE_CXX_COMPILER "${myCXX/ /;}")
+		set(CMAKE_Fortran_COMPILER "${myFC/ /;}")
+		set(CMAKE_AR $(type -P $(tc-getAR)) CACHE FILEPATH "Archive manager" FORCE)
+		set(CMAKE_RANLIB $(type -P $(tc-getRANLIB)) CACHE FILEPATH "Archive index generator" FORCE)
+		set(CMAKE_SYSTEM_PROCESSOR "${CHOST%%-*}")
+	_EOF_
+
+	echo "${toolchain_file}"
+}
+
+cmake_build_build_rules() {
+	tc-env_build cmake_build_rules "${CBUILD}"
+}
+
+cmake_build_rules() {
+	# Prepare Gentoo override rules (set valid compiler, append CPPFLAGS etc.)
+	local build_rules=${BUILD_DIR}/${1-${CHOST}}-rules.cmake
+
+	cat > "${build_rules}" <<- _EOF_ || die
+		set(CMAKE_ASM_COMPILE_OBJECT "<CMAKE_ASM_COMPILER> <DEFINES> <INCLUDES> ${CPPFLAGS} <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "ASM compile command" FORCE)
+		set(CMAKE_ASM-ATT_COMPILE_OBJECT "<CMAKE_ASM-ATT_COMPILER> <DEFINES> <INCLUDES> ${CPPFLAGS} <FLAGS> -o <OBJECT> -c -x assembler <SOURCE>" CACHE STRING "ASM-ATT compile command" FORCE)
+		set(CMAKE_ASM-ATT_LINK_FLAGS "-nostdlib" CACHE STRING "ASM-ATT link flags" FORCE)
+		set(CMAKE_C_COMPILE_OBJECT "<CMAKE_C_COMPILER> <DEFINES> <INCLUDES> ${CPPFLAGS} <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "C compile command" FORCE)
+		set(CMAKE_CXX_COMPILE_OBJECT "<CMAKE_CXX_COMPILER> <DEFINES> <INCLUDES> ${CPPFLAGS} <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "C++ compile command" FORCE)
+		set(CMAKE_Fortran_COMPILE_OBJECT "<CMAKE_Fortran_COMPILER> <DEFINES> <INCLUDES> ${FCFLAGS} <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "Fortran compile command" FORCE)
+	_EOF_
+
+	echo "${build_rules}"
+}
+
 # @VARIABLE: MYCMAKEARGS
 # @DEFAULT_UNSET
 # @DESCRIPTION:
@@ -431,36 +473,8 @@ cmake_src_configure() {
 	# Fix xdg collision with sandbox
 	xdg_environment_reset
 
-	# Prepare Gentoo override rules (set valid compiler, append CPPFLAGS etc.)
-	local build_rules=${BUILD_DIR}/gentoo_rules.cmake
-
-	cat > "${build_rules}" <<- _EOF_ || die
-		set(CMAKE_ASM_COMPILE_OBJECT "<CMAKE_ASM_COMPILER> <DEFINES> <INCLUDES> ${CPPFLAGS} <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "ASM compile command" FORCE)
-		set(CMAKE_ASM-ATT_COMPILE_OBJECT "<CMAKE_ASM-ATT_COMPILER> <DEFINES> <INCLUDES> ${CPPFLAGS} <FLAGS> -o <OBJECT> -c -x assembler <SOURCE>" CACHE STRING "ASM-ATT compile command" FORCE)
-		set(CMAKE_ASM-ATT_LINK_FLAGS "-nostdlib" CACHE STRING "ASM-ATT link flags" FORCE)
-		set(CMAKE_C_COMPILE_OBJECT "<CMAKE_C_COMPILER> <DEFINES> <INCLUDES> ${CPPFLAGS} <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "C compile command" FORCE)
-		set(CMAKE_CXX_COMPILE_OBJECT "<CMAKE_CXX_COMPILER> <DEFINES> <INCLUDES> ${CPPFLAGS} <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "C++ compile command" FORCE)
-		set(CMAKE_Fortran_COMPILE_OBJECT "<CMAKE_Fortran_COMPILER> <DEFINES> <INCLUDES> ${FCFLAGS} <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "Fortran compile command" FORCE)
-	_EOF_
-
-	local myCC=$(tc-getCC) myCXX=$(tc-getCXX) myFC=$(tc-getFC)
-
-	# !!! IMPORTANT NOTE !!!
-	# Single slash below is intentional. CMake is weird and wants the
-	# CMAKE_*_VARIABLES split into two elements: the first one with
-	# compiler path, and the second one with all command-line options,
-	# space separated.
-	local toolchain_file=${BUILD_DIR}/gentoo_toolchain.cmake
-	cat > ${toolchain_file} <<- _EOF_ || die
-		set(CMAKE_ASM_COMPILER "${myCC/ /;}")
-		set(CMAKE_ASM-ATT_COMPILER "${myCC/ /;}")
-		set(CMAKE_C_COMPILER "${myCC/ /;}")
-		set(CMAKE_CXX_COMPILER "${myCXX/ /;}")
-		set(CMAKE_Fortran_COMPILER "${myFC/ /;}")
-		set(CMAKE_AR $(type -P $(tc-getAR)) CACHE FILEPATH "Archive manager" FORCE)
-		set(CMAKE_RANLIB $(type -P $(tc-getRANLIB)) CACHE FILEPATH "Archive index generator" FORCE)
-		set(CMAKE_SYSTEM_PROCESSOR "${CHOST%%-*}")
-	_EOF_
+	local build_rules=$(cmake_build_rules)
+	local toolchain_file=$(cmake_toolchain_file)
 
 	# We are using the C compiler for assembly by default.
 	local -x ASMFLAGS=${CFLAGS}
