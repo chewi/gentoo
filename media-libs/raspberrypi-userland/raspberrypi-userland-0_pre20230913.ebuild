@@ -26,6 +26,8 @@ HOMEPAGE="https://github.com/raspberrypi/userland"
 
 LICENSE="BSD"
 SLOT="0"
+IUSE="video_cards_v3d video_cards_vc4"
+REQUIRED_USE="^^ ( video_cards_v3d video_cards_vc4 )"
 
 DEPEND=""
 RDEPEND="acct-group/video

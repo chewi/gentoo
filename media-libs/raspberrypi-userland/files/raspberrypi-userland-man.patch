@@ -1,0 +1,90 @@
+From 6e5259f62f134dd51d166e28b9813021cffdb6e0 Mon Sep 17 00:00:00 2001
+From: Stef Walter <stefw@redhat.com>
+Date: Sat, 4 Dec 2021 11:02:09 -0500
+Subject: [PATCH 2/2] Install manual pages as per GNU Coding Standards
+
+Includes GNUInstallDirs and uses MANDIR (instead of hardcoded man)
+to install manual pages.
+
+See: https://cmake.org/cmake/help/v3.0/module/GNUInstallDirs.html
+---
+ host_applications/linux/apps/dtmerge/CMakeLists.txt   | 2 +-
+ host_applications/linux/apps/dtoverlay/CMakeLists.txt | 4 ++--
+ host_applications/linux/apps/gencmd/CMakeLists.txt    | 2 +-
+ host_applications/linux/apps/raspicam/CMakeLists.txt  | 4 ++--
+ host_applications/linux/apps/tvservice/CMakeLists.txt | 2 +-
+ host_applications/linux/apps/vcmailbox/CMakeLists.txt | 4 ++--
+ 6 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/host_applications/linux/apps/dtmerge/CMakeLists.txt b/host_applications/linux/apps/dtmerge/CMakeLists.txt
+index d3f7e36c2..087bd879b 100755
+--- a/host_applications/linux/apps/dtmerge/CMakeLists.txt
++++ b/host_applications/linux/apps/dtmerge/CMakeLists.txt
+@@ -18,4 +18,4 @@ add_executable(dtmerge dtmerge.c)
+ target_link_libraries(dtmerge dtovl)
+ 
+ install(TARGETS dtmerge RUNTIME DESTINATION bin)
+-install(FILES dtmerge.1 DESTINATION man/man1)
++install(FILES dtmerge.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+diff --git a/host_applications/linux/apps/dtoverlay/CMakeLists.txt b/host_applications/linux/apps/dtoverlay/CMakeLists.txt
+index 97bcadcf9..ef12395e6 100755
+--- a/host_applications/linux/apps/dtoverlay/CMakeLists.txt
++++ b/host_applications/linux/apps/dtoverlay/CMakeLists.txt
+@@ -17,11 +17,11 @@ include_directories (
+ add_executable(dtoverlay dtoverlay_main.c utils.c)
+ target_link_libraries(dtoverlay dtovl)
+ install(TARGETS dtoverlay RUNTIME DESTINATION bin)
+-install(FILES dtoverlay.1 DESTINATION man/man1)
++install(FILES dtoverlay.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+ 
+ add_custom_command(TARGET dtoverlay POST_BUILD COMMAND ln;-sf;dtoverlay;dtparam)
+ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/dtparam DESTINATION bin)
+-install(FILES dtparam.1 DESTINATION man/man1)
++install(FILES dtparam.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+ 
+ set(DTOVERLAY_SCRIPTS dtoverlay-pre dtoverlay-post)
+ install(PROGRAMS ${DTOVERLAY_SCRIPTS} DESTINATION bin)
+diff --git a/host_applications/linux/apps/gencmd/CMakeLists.txt b/host_applications/linux/apps/gencmd/CMakeLists.txt
+index 0c2c32a4c..34b65b815 100644
+--- a/host_applications/linux/apps/gencmd/CMakeLists.txt
++++ b/host_applications/linux/apps/gencmd/CMakeLists.txt
+@@ -17,4 +17,4 @@ include_directories( ../../../..
+ add_executable(vcgencmd gencmd.c)
+ target_link_libraries(vcgencmd vcos vchiq_arm vchostif)
+ install(TARGETS vcgencmd RUNTIME DESTINATION bin)
+-install(FILES vcgencmd.1 DESTINATION man/man1)
++install(FILES vcgencmd.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+diff --git a/host_applications/linux/apps/raspicam/CMakeLists.txt b/host_applications/linux/apps/raspicam/CMakeLists.txt
+index e6bd37389..a9163cc3a 100644
+--- a/host_applications/linux/apps/raspicam/CMakeLists.txt
++++ b/host_applications/linux/apps/raspicam/CMakeLists.txt
+@@ -67,5 +67,5 @@ target_link_libraries(raspivid   ${MMAL_LIBS} vcos bcm_host m)
+ target_link_libraries(raspividyuv   ${MMAL_LIBS} vcos bcm_host m)
+ 
+ install(TARGETS raspistill raspiyuv raspivid raspividyuv RUNTIME DESTINATION bin)
+-install(FILES raspistill.1 raspiyuv.1 raspivid.1 raspividyuv.1 DESTINATION man/man1)
+-install(FILES raspicam.7 DESTINATION man/man7)
++install(FILES raspistill.1 raspiyuv.1 raspivid.1 raspividyuv.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
++install(FILES raspicam.7 DESTINATION ${CMAKE_INSTALL_MANDIR}/man7)
+diff --git a/host_applications/linux/apps/tvservice/CMakeLists.txt b/host_applications/linux/apps/tvservice/CMakeLists.txt
+index 01907740d..c4c8f2fe9 100644
+--- a/host_applications/linux/apps/tvservice/CMakeLists.txt
++++ b/host_applications/linux/apps/tvservice/CMakeLists.txt
+@@ -4,4 +4,4 @@ target_link_libraries(tvservice vchostif bcm_host)
+ 
+ install(TARGETS tvservice
+         RUNTIME DESTINATION bin)
+-install(FILES tvservice.1 DESTINATION man/man1)
++install(FILES tvservice.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+diff --git a/host_applications/linux/apps/vcmailbox/CMakeLists.txt b/host_applications/linux/apps/vcmailbox/CMakeLists.txt
+index d153363ca..fcb4eff7d 100644
+--- a/host_applications/linux/apps/vcmailbox/CMakeLists.txt
++++ b/host_applications/linux/apps/vcmailbox/CMakeLists.txt
+@@ -3,5 +3,5 @@ target_link_libraries(vcmailbox vchostif)
+ 
+ install(TARGETS vcmailbox
+         RUNTIME DESTINATION bin)
+-install(FILES vcmailbox.1 DESTINATION man/man1)
+-install(FILES vcmailbox.7 raspiotp.7 raspirev.7 DESTINATION man/man7)
++install(FILES vcmailbox.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
++install(FILES vcmailbox.7 raspiotp.7 raspirev.7 DESTINATION ${CMAKE_INSTALL_MANDIR}/man7)
