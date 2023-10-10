@@ -9,7 +9,7 @@ if [[ ${PV} == 9999* ]]; then
 	EGIT_REPO_URI="https://github.com/${PN/-//}.git"
 	SRC_URI=""
 else
-	# We base our versioning on  Raspbian
+	# We base our versioning on Raspberry Pi OS
 	# Go to https://archive.raspberrypi.org/debian/pool/main/r/raspberrypi-userland/
 	# Example:
 	# * libraspberrypi-bin-dbgsym_2+git20201022~151804+e432bc3-1_arm64.deb
@@ -26,6 +26,7 @@ HOMEPAGE="https://github.com/raspberrypi/userland"
 
 LICENSE="BSD"
 SLOT="0"
+IUSE="fakekms"
 
 DEPEND=""
 RDEPEND="acct-group/video

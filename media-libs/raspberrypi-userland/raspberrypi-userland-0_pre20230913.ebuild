@@ -1,15 +1,16 @@
 # Copyright 1999-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
-inherit cmake flag-o-matic udev
+EAPI=8
+
+inherit cmake flag-o-matic toolchain-funcs udev
 
 if [[ ${PV} == 9999* ]]; then
 	inherit git-r3
 	EGIT_REPO_URI="https://github.com/${PN/-//}.git"
 	SRC_URI=""
 else
-	# We base our versioning on  Raspbian
+	# We base our versioning on Raspberry Pi OS
 	# Go to https://archive.raspberrypi.org/debian/pool/main/r/raspberrypi-userland/
 	# Example:
 	# * libraspberrypi-bin-dbgsym_2+git20201022~151804+e432bc3-1_arm64.deb
@@ -26,8 +27,7 @@ HOMEPAGE="https://github.com/raspberrypi/userland"
 
 LICENSE="BSD"
 SLOT="0"
-IUSE="video_cards_v3d video_cards_vc4"
-REQUIRED_USE="^^ ( video_cards_v3d video_cards_vc4 )"
+IUSE="fakekms"
 
 DEPEND=""
 RDEPEND="acct-group/video
@@ -52,17 +52,13 @@ src_prepare() {
 	sed -i \
 		-e 's:DESTINATION ${VMCS_INSTALL_PREFIX}/src:DESTINATION ${VMCS_INSTALL_PREFIX}/'"share/doc/${PF}:" \
 		"${S}/makefiles/cmake/vmcs.cmake" || die "Failed sedding makefiles/cmake/vmcs.cmake"
-	sed -i \
-		-e 's:^install(TARGETS EGL GLESv2 OpenVG WFC:install(TARGETS:' \
-		-e '/^install(TARGETS EGL_static GLESv2_static/d' \
-		"${S}/interface/khronos/CMakeLists.txt" || die "Failed sedding interface/khronos/CMakeLists.txt"
 }
 
 src_configure() {
 	append-ldflags $(no-as-needed)
 
 	local mycmakeargs=(
-		-DVMCS_INSTALL_PREFIX="${EPREFIX}/usr"
+		-DVMCS_INSTALL_PREFIX="${EPREFIX}/opt/vc"
 		-DARM64=$(usex arm64)
 	)
 
@@ -76,4 +72,20 @@ src_install() {
 
 pkg_postinst() {
 	udev_reload
+}
+
+pkg_postinst() {
+	if ! tc-cross-compiler; then
+		if use fakekms; then
+			if ! grep -Fq vc4-fkms-v3d /boot/config.txt 2>/dev/null; then
+				ewarn "You must add dtoverlay=vc4-fkms-v3d(-pi4) to your /boot/config.txt file"
+				ewarn "when fakekms is enabled."
+			fi
+		else
+			if ! grep -Fq vc4-kms-v3d /boot/config.txt 2>/dev/null; then
+				ewarn "You must add dtoverlay=vc4-kms-v3d(-pi4) to your /boot/config.txt file"
+				ewarn "when fakekms is disabled."
+			fi
+		fi
+	fi
 }
