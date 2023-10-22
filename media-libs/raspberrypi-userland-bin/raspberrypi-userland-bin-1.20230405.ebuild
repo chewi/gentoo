@@ -18,6 +18,7 @@ IUSE="examples fakekms"
 REQUIRED_USE="examples? ( fakekms )"
 RESTRICT="strip"
 
+BDEPEND="dev-util/patchelf"
 RDEPEND="!media-libs/raspberrypi-userland"
 
 QA_PREBUILT="opt/vc/*"
@@ -30,18 +31,36 @@ src_prepare() {
 	default
 	cdvc
 
+	eapply "${FILESDIR}"/${PN}-libdir.patch
+	hprefixify lib/pkgconfig/*.pc
+
+	local bin interpreter
+	for bin in bin/*; do
+		interpreter=$(patchelf --print-interpreter "${bin}" 2>/dev/null) || continue
+
+		if [[ ${bin} = bin/raspistill ]]; then
+			patchelf --set-rpath "${EPREFIX}/opt/vc/lib/fakekms:${EPREFIX}/opt/vc/lib" "${bin}" || die
+		else
+			patchelf --set-rpath "${EPREFIX}/opt/vc/lib" "${bin}" || die
+		fi
+
+		if use prefix; then
+			patchelf --set-interpreter "${EPREFIX}${interpreter}" "${bin}" || die
+		fi
+	done
+
+	mkdir lib/fakekms || die
+	mv lib/lib*{EGL,GLES,khrn_static,openmaxil,OpenVG,vcilcs,WFC}* lib/fakekms/ || die
+
 	if ! use fakekms; then
 		rm -rv \
 			bin/raspistill \
 			include/{EGL,GLES,GLES2,IL,KHR,VG,WF}/ \
 			include/interface/mmal/util/mmal_il.h \
 			include/interface/vmcs_host/{khronos/,*ilcs*.h} \
-			lib/lib*{EGL,GLES,khrn_static,openmaxil,OpenVG,vcilcs,WFC}* \
 			lib/pkgconfig/brcm{egl,glesv2,vg}.pc \
 			|| die
 	fi
-
-	hprefixify lib/pkgconfig/*.pc
 }
 
 src_install() {
@@ -63,7 +82,12 @@ src_install() {
 	insinto /usr/$(get_libdir)/pkgconfig
 	doins lib/pkgconfig/*.pc
 
-	doenvd $(prefixify_ro "${FILESDIR}"/04${PN})
+#	doenvd $(prefixify_ro "${FILESDIR}"/04${PN})
+
+	if use fakekms; then
+		exeinto /opt/vc/lib/fakekms
+		doexe lib/fakekms/*.so
+	fi
 
 	if use examples ; then
 		docinto examples
@@ -72,7 +96,7 @@ src_install() {
 }
 
 pkg_postinst() {
-	if ! tc-cross-compiler; then
+	if ! tc-is-cross-compiler; then
 		if use fakekms; then
 			if ! grep -Fq vc4-fkms-v3d /boot/config.txt 2>/dev/null; then
 				ewarn "You must add dtoverlay=vc4-fkms-v3d(-pi4) to your /boot/config.txt file"
