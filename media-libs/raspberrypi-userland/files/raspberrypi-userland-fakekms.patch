@@ -1,0 +1,84 @@
+diff -Naur a/vc/lib/pkgconfig/bcm_host.pc b/vc/lib/pkgconfig/bcm_host.pc
+--- a/vc/lib/pkgconfig/bcm_host.pc	2023-04-05 12:32:17.000000000 +0100
++++ b/vc/lib/pkgconfig/bcm_host.pc	2023-10-22 17:58:44.367258512 +0100
+@@ -6,5 +6,5 @@
+ Name: bcm_host
+ Description: Broadcom VideoCore host API library
+ Version: 1
+-Libs: -L${libdir} -lbcm_host -lvcos -lvchiq_arm -pthread
++Libs: -Wl,-rpath,${libdir} -L${libdir} -lbcm_host -lvcos -lvchiq_arm -pthread
+ Cflags: -I${includedir} -I${includedir}/interface/vmcs_host/linux -I${includedir}/interface/vcos/pthreads -DUSE_VCHIQ_ARM
+diff -Naur a/vc/lib/pkgconfig/brcmegl.pc b/vc/lib/pkgconfig/brcmegl.pc
+--- a/vc/lib/pkgconfig/brcmegl.pc	2023-04-05 12:32:17.000000000 +0100
++++ b/vc/lib/pkgconfig/brcmegl.pc	2023-10-22 17:58:08.814247676 +0100
+@@ -1,13 +1,12 @@
+ prefix=/opt/vc
+ exec_prefix=${prefix}
+-libdir=${exec_prefix}/lib
++libdir=${exec_prefix}/lib/fakekms
+ includedir=${prefix}/include
+ 
+ Name: brcmEGL
+ Description: Fake brcmEGL package for RPi
+ Version: 10
+ Requires: bcm_host
+-Libs: -L${libdir} -lbrcmEGL -lbrcmGLESv2 -lbcm_host -lvchostif
++Libs: -Wl,-rpath,${libdir} -L${libdir} -lbrcmEGL -lbrcmGLESv2 -lbcm_host -lvchostif
+ Cflags: -I${includedir} -I${includedir}/interface/vmcs_host/linux \
+         -I${includedir}/interface/vcos/pthreads
+-
+diff -Naur a/vc/lib/pkgconfig/brcmglesv2.pc b/vc/lib/pkgconfig/brcmglesv2.pc
+--- a/vc/lib/pkgconfig/brcmglesv2.pc	2023-04-05 12:32:17.000000000 +0100
++++ b/vc/lib/pkgconfig/brcmglesv2.pc	2023-10-22 17:58:14.431407380 +0100
+@@ -1,12 +1,11 @@
+ prefix=/opt/vc
+ exec_prefix=${prefix}
+-libdir=${exec_prefix}/lib
++libdir=${exec_prefix}/lib/fakekms
+ includedir=${prefix}/include
+ 
+ Name: brcmGLESv2
+ Description: Fake brcmGLES2 package for RPi
+ Version: 10
+ Requires: bcm_host
+-Libs: -L${libdir} -lbrcmGLESv2
++Libs: -Wl,-rpath,${libdir} -L${libdir} -lbrcmGLESv2
+ Cflags: -I${includedir}
+-
+diff -Naur a/vc/lib/pkgconfig/brcmvg.pc b/vc/lib/pkgconfig/brcmvg.pc
+--- a/vc/lib/pkgconfig/brcmvg.pc	2023-04-05 12:32:17.000000000 +0100
++++ b/vc/lib/pkgconfig/brcmvg.pc	2023-10-22 17:58:24.846703505 +0100
+@@ -1,11 +1,11 @@
+ prefix=/opt/vc
+ exec_prefix=${prefix}
+-libdir=${exec_prefix}/lib
++libdir=${exec_prefix}/lib/fakekms
+ includedir=${prefix}/include
+ 
+ Name: brcmOpenVG
+ Description: Fake brcmOpenVG package for RPi
+ Version: 10
+ Requires: bcm_host
+-Libs: -L${libdir} -lbrcmOpenVG
++Libs: -Wl,-rpath,${libdir} -L${libdir} -lbrcmOpenVG
+ Cflags: -I${includedir}
+diff -Naur a/vc/lib/pkgconfig/mmal.pc b/vc/lib/pkgconfig/mmal.pc
+--- a/vc/lib/pkgconfig/mmal.pc	2023-04-05 12:32:17.000000000 +0100
++++ b/vc/lib/pkgconfig/mmal.pc	2023-10-22 17:58:51.391458222 +0100
+@@ -7,5 +7,5 @@
+ Description: Multi-Media Abstraction Layer library for RPi
+ Version: 1
+ Requires: vcsm
+-Libs: -L${libdir} -lmmal -lmmal_core -lmmal_util -lmmal_vc_client -lbcm_host
++Libs: -Wl,-rpath,${libdir} -L${libdir} -lmmal -lmmal_core -lmmal_util -lmmal_vc_client -lbcm_host
+ Cflags: -I${includedir}
+diff -Naur a/vc/lib/pkgconfig/vcsm.pc b/vc/lib/pkgconfig/vcsm.pc
+--- a/vc/lib/pkgconfig/vcsm.pc	2023-04-05 12:32:17.000000000 +0100
++++ b/vc/lib/pkgconfig/vcsm.pc	2023-10-22 17:58:53.815527143 +0100
+@@ -6,5 +6,5 @@
+ Name: VCSM
+ Description: VideoCore Shared Memory library for RPi
+ Version: 1
+-Libs: -L${libdir} -lvcsm -lvcos
++Libs: -Wl,-rpath,${libdir} -L${libdir} -lvcsm -lvcos
+ Cflags: -I${includedir}
