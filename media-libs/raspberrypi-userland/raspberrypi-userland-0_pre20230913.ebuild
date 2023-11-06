@@ -39,8 +39,6 @@ PATCHES=(
 	"${FILESDIR}/${PN}-libdir.patch"
 	# See https://github.com/raspberrypi/userland/pull/717
 	"${FILESDIR}/${PN}-man.patch"
-	# Don't install includes that collide.
-	"${FILESDIR}/${PN}-include.patch"
 	# See https://github.com/raspberrypi/userland/pull/655
 	"${FILESDIR}/${PN}-libfdt-static.patch"
 	# See https://github.com/raspberrypi/userland/pull/659
@@ -75,7 +73,7 @@ pkg_postinst() {
 }
 
 pkg_postinst() {
-	if ! tc-cross-compiler; then
+	if ! tc-is-cross-compiler; then
 		if use fakekms; then
 			if ! grep -Fq vc4-fkms-v3d /boot/config.txt 2>/dev/null; then
 				ewarn "You must add dtoverlay=vc4-fkms-v3d(-pi4) to your /boot/config.txt file"
