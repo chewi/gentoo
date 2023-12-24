@@ -25,7 +25,7 @@ PYTHON_COMPAT=( python3_{10..11} ) # Will not work with python3.12 as of 20.2
 
 CPU_FLAGS="cpu_flags_x86_sse cpu_flags_x86_sse2 cpu_flags_x86_sse3 cpu_flags_x86_sse4_1 cpu_flags_x86_sse4_2 cpu_flags_x86_avx cpu_flags_x86_avx2 cpu_flags_arm_neon"
 
-inherit cmake desktop flag-o-matic linux-info pax-utils python-single-r1 xdg
+inherit autotools cmake desktop flag-o-matic linux-info pax-utils python-single-r1 toolchain-funcs xdg
 
 DESCRIPTION="A free and open source media-player and entertainment hub"
 HOMEPAGE="https://kodi.tv/ https://kodi.wiki/"
@@ -138,6 +138,7 @@ COMMON_TARGET_DEPEND="${PYTHON_DEPS}
 	)
 	gbm? (
 		>=dev-libs/libinput-1.10.5
+		media-libs/libdisplay-info
 		x11-libs/libxkbcommon
 	)
 	gles? (
@@ -304,6 +305,23 @@ src_prepare() {
 	sed -i \
 		-e 's/\(find_library(KISSFFT_LIBRARY NAMES .*\)/\1 kissfft-simd-openmp/' \
 		cmake/modules/FindKissFFT.cmake || die
+
+	if tc-is-cross-compiler; then
+		# These tools are automatically built with CMake during a native build
+		# but need to be built in advance using Autotools for a cross build.
+		NATIVE_TOOLS=(
+			TexturePacker
+			JsonSchemaBuilder
+		)
+
+		local t
+		for t in "${NATIVE_TOOLS[@]}" ; do
+			pushd "${S}/tools/depends/native/$t/src" >/dev/null || die
+			AT_NOELIBTOOLIZE="yes" AT_TOPLEVEL_EAUTORECONF="yes" eautoreconf
+			popd >/dev/null || die
+		done
+		elibtoolize
+	fi
 }
 
 src_configure() {
@@ -416,10 +434,26 @@ src_configure() {
 	# https://github.com/xbmc/xbmc/commit/cb72a22d54a91845b1092c295f84eeb48328921e
 	filter-lto
 
+	if tc-is-cross-compiler; then
+		for t in "${NATIVE_TOOLS[@]}" ; do
+			pushd "${S}/tools/depends/native/$t/src" >/dev/null || die
+			econf_build
+			install -m0755 /dev/null "$t" || die # Actually build later.
+			mycmakeargs+=( -DWITH_${t^^}="${PWD}/$t" )
+			popd >/dev/null || die
+		done
+	fi
+
 	cmake_src_configure
 }
 
 src_compile() {
+	if tc-is-cross-compiler; then
+		for t in "${NATIVE_TOOLS[@]}" ; do
+			emake -C "${S}/tools/depends/native/$t/src"
+		done
+	fi
+
 	cmake_src_compile all
 }
 
