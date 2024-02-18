@@ -33,6 +33,16 @@
 
 #--- END OF EXAMPLES ---
 
+# James Le Cuirot <chewi@gentoo.org> (2023-12-27)
+# The Raspberry Pi ecosystem has gradually migrated away from its bespoke
+# userland libraries to standard cross-platform ones. The community no longer
+# cares about the legacy stack.
+# Removal on 2024-02-27.
+media-libs/raspberrypi-userland
+media-libs/raspberrypi-userland-bin
+media-plugins/vdr-rpihddevice
+media-video/raspberrypi-omxplayer
+
 # Alfredo Tupone <tupone@gentoo.org> (2024-02-18)
 # Not ported to python3_12
 # Removal on 2024-03-18.
