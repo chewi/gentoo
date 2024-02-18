@@ -127,10 +127,6 @@ app-emulation/qemu qemu_softmmu_targets_ppc qemu_softmmu_targets_ppc64
 # Unkeyworded dependencies.
 app-admin/syslog-ng mongodb
 
-# Sam James <sam@gentoo.org> (2021-08-14)
-# Needs Raspberry Pi specific applications
-media-video/mjpg-streamer -input-raspicam
-
 # Sam James <sam@gentoo.org> (2021-07-25)
 # At present, dev-lang/fpc doesn't support arm64.
 # Java isn't here either.
@@ -221,10 +217,6 @@ dev-util/schroot zfs
 # Neither sys-apps/bolt nor kde-plasma/plasma-thunderbolt are keyworded
 kde-plasma/plasma-meta thunderbolt
 
-# Craig Andrews <candrews@gentoo.org> (2019-07-03)
-# Unmask Raspberry Pi support on arm.
-media-tv/kodi -raspberry-pi
-
 # Matt Turner <mattst88@gentoo.org> (2019-06-20)
 # dev-lang/spidermonkey:60[jit] fails to build on most platforms, but does
 # build on arm.
@@ -266,10 +258,6 @@ net-libs/gnutls test-full
 # Michał Górny <mgorny@gentoo.org> (2017-12-30)
 # Moved from use.mask since they are flags local to one package.
 media-tv/tvheadend hdhomerun
-
-# Patrice Clement <monsieurp@gentoo.org> (2017-09-24)
-# Unmask Raspberry Pi support on arm.
-media-video/mpv -raspberry-pi
 
 # James Le Cuirot <chewi@gentoo.org> (2017-09-20)
 # media-sound/mac's executable segfaults when compressing all but the
@@ -317,10 +305,6 @@ dev-db/mariadb -jdbc
 # does not build on arm at all (upstream bug)
 dev-scheme/racket futures jit
 
-# Ian Whyman <thev00d00@gentoo.org> (2016-05-22)
-# RPI support on arm
-dev-libs/libcec -raspberry-pi
-
 # Thomas Deutschmann <whissi@gentoo.org> (2016-03-19)
 # Unkeyworded deps, bug #564274
 app-metrics/collectd collectd_plugins_ipmi
@@ -351,13 +335,6 @@ net-print/hplip -scanner kde
 # Pacho Ramos <pacho@gentoo.org> (2015-11-15)
 # Missing keywords
 >=media-plugins/grilo-plugins-0.2.16 upnp-av
-
-# Alexis Ballier <aballier@gentoo.org> (2015-11-14)
-# MMAL is available on the Raspberry Pi (armv6 & armv7 so far)
-media-video/ffmpeg -mmal
-media-video/ffmpeg-chromium -mmal
-media-video/mpv -mmal
-net-misc/moonlight -mmal
 
 # Markus Meier <maekke@gentoo.org> (2015-10-10)
 # unkeyworded deps, bug #552330
