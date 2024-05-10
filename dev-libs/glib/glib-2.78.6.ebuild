@@ -270,12 +270,7 @@ pkg_preinst() {
 			touch "${ED}"${cache} || die
 		fi
 	}
-
-	# Don't run the cache ownership when cross-compiling, as it would end up with an empty cache
-	# file due to inability to create it and GIO might not look at any of the modules there
-	if ! tc-is-cross-compiler ; then
-		multilib_foreach_abi multilib_pkg_preinst
-	fi
+	multilib_foreach_abi multilib_pkg_preinst
 }
 
 pkg_postinst() {
@@ -289,14 +284,7 @@ pkg_postinst() {
 		gnome2_giomodule_cache_update \
 			|| die "Update GIO modules cache failed (for ${ABI})"
 	}
-	if ! tc-is-cross-compiler ; then
-		multilib_foreach_abi multilib_pkg_postinst
-	else
-		ewarn "Updating of GIO modules cache skipped due to cross-compilation."
-		ewarn "You might want to run gio-querymodules manually on the target for"
-		ewarn "your final image for performance reasons and re-run it when packages"
-		ewarn "installing GIO modules get upgraded or added to the image."
-	fi
+	multilib_foreach_abi multilib_pkg_postinst
 
 	for v in ${REPLACING_VERSIONS}; do
 		if ver_test "$v" "-lt" "2.63.6"; then

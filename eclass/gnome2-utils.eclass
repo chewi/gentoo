@@ -16,9 +16,8 @@
 #  * scrollkeeper (old Gnome help system) management
 
 [[ ${EAPI} == 5 ]] && inherit multilib
-# toolchain-funs.eclass: tc-is-cross-compiler
 # xdg-utils.eclass: xdg_environment_reset, xdg_icon_cache_update
-inherit toolchain-funcs xdg-utils
+inherit root xdg-utils
 
 case ${EAPI} in
 	5|6|7|8) ;;
@@ -133,14 +132,6 @@ gnome2_gconf_install() {
 		return
 	fi
 
-	if tc-is-cross-compiler ; then
-		ewarn "Updating of GNOME 2 GConf schemas skipped due to cross-compilation."
-		ewarn "You might want to run gconftool-2 manually on the target for"
-		ewarn "your final image and re-run it when packages installing"
-		ewarn "GNOME 2 GConf schemas get upgraded or added to the image."
-		return
-	fi
-
 	if [[ ! -x "${updater}" ]]; then
 		debug-print "${updater} is not executable"
 		return
@@ -148,7 +139,7 @@ gnome2_gconf_install() {
 
 	# We are ready to install the GCONF Scheme now
 	unset GCONF_DISABLE_MAKEFILE_SCHEMA_INSTALL
-	export GCONF_CONFIG_SOURCE="$("${updater}" --get-default-source | sed "s;:/;:${ROOT%/}/;")"
+	export GCONF_CONFIG_SOURCE="$(root_run "${updater#${ROOT}}" --get-default-source)"
 
 	einfo "Installing GNOME 2 GConf schemas"
 
@@ -156,7 +147,7 @@ gnome2_gconf_install() {
 	for F in ${GNOME2_ECLASS_SCHEMAS}; do
 		if [[ -e "${EROOT%/}/${F}" ]]; then
 			debug-print "Installing schema: ${F}"
-			"${updater}" --makefile-install-rule "${EROOT%/}/${F}" 1>/dev/null
+			root_run "${updater#${ROOT}}" --makefile-install-rule "${EPREFIX}/${F}" 1>/dev/null
 		fi
 	done
 
@@ -181,20 +172,13 @@ gnome2_gconf_uninstall() {
 		return
 	fi
 
-	if tc-is-cross-compiler ; then
-		ewarn "Removal of GNOME 2 GConf schemas skipped due to cross-compilation."
-		ewarn "You might want to run gconftool-2 manually on the target for"
-		ewarn "your final image to uninstall this package's schemas."
-		return
-	fi
-
 	if [[ ! -x "${updater}" ]]; then
 		debug-print "${updater} is not executable"
 		return
 	fi
 
 	unset GCONF_DISABLE_MAKEFILE_SCHEMA_INSTALL
-	export GCONF_CONFIG_SOURCE="$("${updater}" --get-default-source | sed "s;:/;:${ROOT%/}/;")"
+	export GCONF_CONFIG_SOURCE="$(root_run "${updater#${ROOT}}" --get-default-source)"
 
 	einfo "Uninstalling GNOME 2 GConf schemas"
 
@@ -202,7 +186,7 @@ gnome2_gconf_uninstall() {
 	for F in ${GNOME2_ECLASS_SCHEMAS}; do
 		if [[ -e "${EROOT%/}/${F}" ]]; then
 			debug-print "Uninstalling gconf schema: ${F}"
-			"${updater}" --makefile-uninstall-rule "${EROOT%/}/${F}" 1>/dev/null
+			root_run "${updater#${ROOT}}" --makefile-uninstall-rule "${EPREFIX}/${F}" 1>/dev/null
 		fi
 	done
 
@@ -289,21 +273,13 @@ gnome2_scrollkeeper_update() {
 		return
 	fi
 
-	if tc-is-cross-compiler ; then
-		ewarn "Updating of scrollkeeper database skipped due to cross-compilation."
-		ewarn "You might want to run scrollkeeper-update manually on the target"
-		ewarn "for your final image and re-run it when packages installing"
-		ewarn "scrollkeeper OMF files get upgraded or added to the image."
-		return
-	fi
-
 	if [[ ! -x "${updater}" ]] ; then
 		debug-print "${updater} is not executable"
 		return
 	fi
 
 	ebegin "Updating scrollkeeper database ..."
-	"${updater}" -q -p "${EROOT%/}${SCROLLKEEPER_DIR}"
+	root_run "${updater#${ROOT}}" -q -p "${EPREFIX}${SCROLLKEEPER_DIR}"
 	eend $?
 }
 
@@ -326,21 +302,13 @@ gnome2_schemas_savelist() {
 gnome2_schemas_update() {
 	local updater="${EROOT%/}${GLIB_COMPILE_SCHEMAS}"
 
-	if tc-is-cross-compiler ; then
-		ewarn "Updating of GSettings schemas skipped due to cross-compilation."
-		ewarn "You might want to run glib-compile-schemas manually on the target"
-		ewarn "for your final image and re-run it when packages installing"
-		ewarn "GSettings schemas get upgraded or added to the image."
-		return
-	fi
-
 	if [[ ! -x ${updater} ]]; then
 		debug-print "${updater} is not executable"
 		return
 	fi
 
 	ebegin "Updating GSettings schemas"
-	${updater} --allow-any-name "$@" "${EROOT%/}/usr/share/glib-2.0/schemas" &>/dev/null
+	root_run "${updater#${ROOT}}" --allow-any-name "$@" "${EPREFIX}/usr/share/glib-2.0/schemas" &>/dev/null
 	eend $?
 }
 
@@ -363,14 +331,6 @@ gnome2_gdk_pixbuf_update() {
 	local updater="${EROOT%/}/usr/bin/${CHOST}-gdk-pixbuf-query-loaders"
 	[[ -x ${updater} ]] || updater="${EROOT%/}/usr/bin/gdk-pixbuf-query-loaders"
 
-	if tc-is-cross-compiler ; then
-		ewarn "Updating of gdk-pixbuf loader cache skipped due to cross-compilation."
-		ewarn "You might want to run gdk-pixbuf-query-loaders manually on the target"
-		ewarn "for your final image and re-run it when packages installing"
-		ewarn "gdk-pixbuf loaders get upgraded or added to the image."
-		return
-	fi
-
 	if [[ ! -x ${updater} ]]; then
 		debug-print "${updater} is not executable"
 		return
@@ -378,7 +338,7 @@ gnome2_gdk_pixbuf_update() {
 
 	ebegin "Updating gdk-pixbuf loader cache"
 	local tmp_file=$(mktemp "${T}"/tmp.XXXXXXXXXX) || die "Failed to create temporary file"
-	${updater} 1> "${tmp_file}" &&
+	root_run "${updater#${ROOT}}" 1> "${tmp_file}" &&
 	chmod 0644 "${tmp_file}" &&
 	cp -f "${tmp_file}" "${EROOT%/}/usr/$(get_libdir)/gdk-pixbuf-2.0/2.10.0/loaders.cache" &&
 	rm "${tmp_file}" # don't replace this with mv, required for SELinux support
@@ -429,21 +389,13 @@ gnome2_giomodule_cache_update() {
 	local updater="${EROOT%/}/usr/bin/${CHOST}-gio-querymodules"
 	[[ -x ${updater} ]] || updater="${EROOT%/}/usr/bin/gio-querymodules"
 
-	if tc-is-cross-compiler ; then
-		ewarn "Updating of GIO modules cache skipped due to cross-compilation."
-		ewarn "You might want to run gio-querymodules manually on the target for"
-		ewarn "your final image for performance reasons and re-run it when packages"
-		ewarn "installing GIO modules get upgraded or added to the image."
-		return
-	fi
-
 	if [[ ! -x ${updater} ]]; then
 		debug-print "${updater} is not executable"
 		return
 	fi
 
 	ebegin "Updating GIO modules cache"
-	${updater} "${EROOT%/}"/usr/$(get_libdir)/gio/modules
+	root_run "${updater#${ROOT}}" "${EPREFIX}"/usr/$(get_libdir)/gio/modules
 	eend $?
 }
 
