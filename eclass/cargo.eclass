@@ -36,7 +36,8 @@ esac
 
 inherit flag-o-matic multiprocessing rust-toolchain toolchain-funcs
 
-[[ ! ${CARGO_OPTIONAL} ]] && BDEPEND="${RUST_DEPEND}"
+# app-misc/yq is needed for tomlq.
+[[ ! ${CARGO_OPTIONAL} ]] && BDEPEND="${RUST_DEPEND} app-misc/yq"
 
 IUSE="${IUSE} debug"
 
@@ -566,21 +567,26 @@ cargo_env() {
 	# It has been common for users and ebuilds to set RUSTFLAGS, which would
 	# have overridden whatever a project sets anyway, so the least-worst option
 	# is to include those RUSTFLAGS in target-specific config here, which will
-	# merge with any the project sets. Only flags in generic [build] config set
-	# by the project will be lost, and ebuilds will need to add those to
-	# RUSTFLAGS themselves if they are important.
-	#
-	# We could potentially inspect a project's generic [build] config and
-	# reapply those flags ourselves, but that would require a proper toml parser
-	# like tomlq, it might lead to confusion where projects also have
-	# target-specific config, and converting arrays to strings may not work
-	# well. Nightly features to inspect the config might help here in future.
+	# merge with any the project sets. Flags in generic [build] config set by
+	# the project would then be overridden, but we preserve them by reading them
+	# from config files and prepending them to RUSTFLAGS.
 	#
 	# As of Rust 1.80, it is not possible to set separate flags for the build
 	# host and the target host when cross-compiling. The flags given are applied
 	# to the target host only with no flags being applied to the build host. The
 	# nightly host-config feature will improve this situation later.
-	#
+
+	# Iterate over all the config.toml files that Cargo will read except for our
+	# own, prepending any build.rustflags to our environment variable so that
+	# they don't get overridden by our other flags. Skip any flags with an
+	# explicit space in them because we cannot handle those via our variable.
+	local DIR=${PWD}
+	while true; do
+		RUSTFLAGS="$(tomlq -r '.build.rustflags | if type == "array" then map(select(contains(" ") | not)) else [.] end | join(" ")' "${DIR}"/.cargo/config.toml 2>/dev/null) ${RUSTFLAGS# }"
+		[[ -d ${DIR} ]] || break
+		DIR=${DIR%/*}
+	done
+
 	# The default linker is "cc" so override by setting linker to CC in the
 	# RUSTFLAGS. The given linker cannot include any arguments, so split these
 	# into link-args along with LDFLAGS.
