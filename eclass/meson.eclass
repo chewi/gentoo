@@ -207,6 +207,8 @@ _meson_create_native_file() {
 
 	local fn=${T}/meson.${CBUILD}.${ABI}.ini
 
+	# Only set pkg_config_libdir for native builds because get_libdir may be
+	# wrong when cross-compiling and this is only needed for native multilib.
 	cat > "${fn}" <<-EOF
 	[binaries]
 	ar = $(_meson_env_array "$(tc-getBUILD_AR)")
@@ -239,7 +241,7 @@ _meson_create_native_file() {
 
 	[properties]
 	needs_exe_wrapper = false
-	pkg_config_libdir = '${BUILD_PKG_CONFIG_LIBDIR:-${ESYSROOT}/usr/$(get_libdir)/pkgconfig:${ESYSROOT}/usr/share/pkgconfig}'
+	$(tc-is-cross-compiler || echo "pkg_config_libdir = '${BUILD_PKG_CONFIG_LIBDIR:-${ESYSROOT}/usr/$(get_libdir)/pkgconfig:${ESYSROOT}/usr/share/pkgconfig}'")
 
 	[build_machine]
 	system = '${system}'
