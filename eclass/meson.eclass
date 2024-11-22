@@ -183,7 +183,7 @@ _meson_create_cross_file() {
 	[properties]
 	needs_exe_wrapper = true
 	sys_root = '${SYSROOT}'
-	pkg_config_libdir = '${PKG_CONFIG_LIBDIR:-${EPREFIX}/usr/$(get_libdir)/pkgconfig:${EPREFIX}/usr/share/pkgconfig}'
+	pkg_config_libdir = '${PKG_CONFIG_LIBDIR:-${ESYSROOT}/usr/$(get_libdir)/pkgconfig:${ESYSROOT}/usr/share/pkgconfig}'
 
 	[host_machine]
 	system = '${system}'
@@ -239,7 +239,7 @@ _meson_create_native_file() {
 
 	[properties]
 	needs_exe_wrapper = false
-	pkg_config_libdir = '${BUILD_PKG_CONFIG_LIBDIR:-${EPREFIX}/usr/$(get_libdir)/pkgconfig:${EPREFIX}/usr/share/pkgconfig}'
+	pkg_config_libdir = '${BUILD_PKG_CONFIG_LIBDIR:-${ESYSROOT}/usr/$(get_libdir)/pkgconfig:${ESYSROOT}/usr/share/pkgconfig}'
 
 	[build_machine]
 	system = '${system}'
