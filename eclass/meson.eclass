@@ -183,7 +183,7 @@ _meson_create_cross_file() {
 	[properties]
 	needs_exe_wrapper = true
 	sys_root = '${SYSROOT}'
-	pkg_config_libdir = '${PKG_CONFIG_LIBDIR:-${EPREFIX}/usr/$(get_libdir)/pkgconfig}'
+	pkg_config_libdir = '${PKG_CONFIG_LIBDIR:-${EPREFIX}/usr/$(get_libdir)/pkgconfig:${EPREFIX}/usr/share/pkgconfig}'
 
 	[host_machine]
 	system = '${system}'
@@ -239,7 +239,7 @@ _meson_create_native_file() {
 
 	[properties]
 	needs_exe_wrapper = false
-	pkg_config_libdir = '${BUILD_PKG_CONFIG_LIBDIR:-${EPREFIX}/usr/$(get_libdir)/pkgconfig}'
+	pkg_config_libdir = '${BUILD_PKG_CONFIG_LIBDIR:-${EPREFIX}/usr/$(get_libdir)/pkgconfig:${EPREFIX}/usr/share/pkgconfig}'
 
 	[build_machine]
 	system = '${system}'
@@ -349,8 +349,8 @@ setup_meson_src_configure() {
 		--prefix "${EPREFIX}/usr"
 		--sysconfdir "${EPREFIX}/etc"
 		--wrap-mode nodownload
-		--build.pkg-config-path "${BUILD_PKG_CONFIG_PATH}${BUILD_PKG_CONFIG_PATH:+:}${EPREFIX}/usr/share/pkgconfig"
-		--pkg-config-path "${PKG_CONFIG_PATH}${PKG_CONFIG_PATH:+:}${EPREFIX}/usr/share/pkgconfig"
+		--build.pkg-config-path "${BUILD_PKG_CONFIG_PATH}"
+		--pkg-config-path "${PKG_CONFIG_PATH}"
 		--native-file "$(_meson_create_native_file)"
 
 		# gcc[pch] is masked in profiles due to consistent bugginess
