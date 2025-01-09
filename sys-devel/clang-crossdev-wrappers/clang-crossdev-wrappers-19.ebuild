@@ -1,22 +1,21 @@
-# Copyright 2022-2024 Gentoo Authors
+# Copyright 2022-2025 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
-inherit crossdev
+inherit crossdev llvm-utils
 
 DESCRIPTION="Symlinks to a Clang crosscompiler"
 HOMEPAGE="https://wiki.gentoo.org/wiki/Project:LLVM"
-SRC_URI=""
-S=${WORKDIR}
+S="${WORKDIR}"
 
 LICENSE="public-domain"
 SLOT="${PV}"
-KEYWORDS=""
-PROPERTIES="live"
+KEYWORDS="~amd64 ~arm ~arm64 ~loong ~ppc ~ppc64 ~riscv ~sparc ~x86 ~amd64-linux ~arm64-macos ~x64-macos"
 
 RDEPEND="
-	llvm-core/clang:${SLOT}
+	>=${CATEGORY}/clang-crossdev-common-${PV}
+	llvm-core/clang:${SLOT}[llvm_targets_$(llvm_tuple_to_target "${CTARGET}")]
 	llvm-core/lld:${SLOT}
 "
 
@@ -24,21 +23,13 @@ src_install() {
 	local llvm_path="${EPREFIX}/usr/lib/llvm/${SLOT}"
 	into "${llvm_path}"
 
-	for exe in "clang" "clang++" "clang-cpp"; do
-		newbin - "${CTARGET}-${exe}" <<-EOF
+	local tool
+	for tool in clang{,++,-cpp}; do
+		newbin - "${CTARGET}-${tool}" <<-EOF
 		#!/bin/sh
-		exec ${exe}-${SLOT} --no-default-config --config="/etc/clang/cross/${CTARGET}.cfg" \${@}
+		exec ${tool}-${SLOT} --target="${CTARGET}" \${@}
 		EOF
-	done
 
-	local tools=(
-		${CTARGET}-clang-${SLOT}:${CTARGET}-clang
-		${CTARGET}-clang-cpp-${SLOT}:${CTARGET}-clang-cpp
-		${CTARGET}-clang++-${SLOT}:${CTARGET}-clang++
-	)
-
-	local t
-	for t in "${tools[@]}"; do
-		dosym "${t#*:}" "${llvm_path}/bin/${t%:*}"
+		dosym "${CTARGET}-${tool}" "${llvm_path}/bin/${CTARGET}-${tool}-${SLOT}"
 	done
 }

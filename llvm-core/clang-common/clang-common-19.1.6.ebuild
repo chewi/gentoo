@@ -13,20 +13,22 @@ SLOT="0"
 KEYWORDS="~amd64 ~arm ~arm64 ~loong ~mips ~ppc ~ppc64 ~riscv ~sparc ~x86 ~amd64-linux ~arm64-macos ~ppc-macos ~x64-macos"
 IUSE="
 	default-compiler-rt default-libcxx default-lld
-	bootstrap-prefix cet hardened llvm-libunwind
+	bootstrap-prefix cet cross hardened llvm-libunwind
 "
 
 PDEPEND="
-	default-compiler-rt? (
-		llvm-core/clang-runtime:${LLVM_MAJOR}[compiler-rt]
-		llvm-libunwind? ( llvm-runtimes/libunwind[static-libs] )
-		!llvm-libunwind? ( sys-libs/libunwind[static-libs] )
+	!cross? (
+		default-compiler-rt? (
+			llvm-core/clang-runtime:${LLVM_MAJOR}[compiler-rt]
+			llvm-libunwind? ( llvm-runtimes/libunwind[static-libs] )
+			!llvm-libunwind? ( sys-libs/libunwind[static-libs] )
+		)
+		!default-compiler-rt? ( sys-devel/gcc )
+		default-libcxx? ( >=llvm-runtimes/libcxx-${PV}[static-libs] )
+		!default-libcxx? ( sys-devel/gcc )
+		default-lld? ( >=llvm-core/lld-${PV} )
+		!default-lld? ( sys-devel/binutils )
 	)
-	!default-compiler-rt? ( sys-devel/gcc )
-	default-libcxx? ( >=llvm-runtimes/libcxx-${PV}[static-libs] )
-	!default-libcxx? ( sys-devel/gcc )
-	default-lld? ( >=llvm-core/lld-${PV} )
-	!default-lld? ( sys-devel/binutils )
 "
 IDEPEND="
 	!default-compiler-rt? ( sys-devel/gcc-config )
@@ -164,7 +166,7 @@ src_install() {
 		@gentoo-gcc-install.cfg
 		@gentoo-hardened.cfg
 		# bug #870001
-		-include "${EPREFIX}/usr/include/gentoo/maybe-stddefs.h"
+		-include gentoo/maybe-stddefs.h
 	EOF
 
 	# clang-cpp does not like link args being passed to it when directly
@@ -181,7 +183,7 @@ src_install() {
 		-Xarch_host -fstack-clash-protection
 		-Xarch_host -fstack-protector-strong
 		-fPIE
-		-include "${EPREFIX}/usr/include/gentoo/fortify.h"
+		-include gentoo/fortify.h
 	EOF
 
 	newins - gentoo-cet.cfg <<-EOF
