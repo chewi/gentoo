@@ -5,7 +5,7 @@ EAPI=8
 PYTHON_REQ_USE="xml(+)"
 PYTHON_COMPAT=( python3_{10..13} )
 
-inherit eapi9-ver gnome.org gnome2-utils linux-info meson-multilib multilib python-any-r1 toolchain-funcs xdg
+inherit eapi9-ver gnome.org gnome2-utils linux-info meson-multilib multilib python-any-r1 sysroot toolchain-funcs xdg
 
 DESCRIPTION="The GLib library of C routines"
 HOMEPAGE="https://www.gtk.org/"
@@ -218,6 +218,7 @@ multilib_src_configure() {
 	# Build internal copy of gobject-introspection to avoid circular dependency (built for native abi only)
 	if multilib_native_use introspection && ! has_version ">=dev-libs/${INTROSPECTION_P}" ; then
 		einfo "Bootstrapping gobject-introspection..."
+		sysroot_make_runner
 		INTROSPECTION_BIN_DIR="${T}/bootstrap-gi-prefix/usr/bin"
 		INTROSPECTION_LIB_DIR="${T}/bootstrap-gi-prefix/usr/$(get_libdir)"
 
@@ -264,7 +265,7 @@ multilib_src_configure() {
 		pushd ${INTROSPECTION_SOURCE_DIR} || die
 
 		meson_src_configure
-		meson_src_compile
+		meson_src_compile tools/g-ir-{compiler,generate,inspect}
 		# We already provide a prefix in ${T} above. Blank DESTDIR
 		# as it may be set in the environment by Portage (though not
 		# guaranteed in src_configure).

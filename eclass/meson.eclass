@@ -167,6 +167,7 @@ _meson_create_cross_file() {
 	pkg-config = '$(tc-getPKG_CONFIG)'
 	strip = $(_meson_env_array "$(tc-getSTRIP)")
 	windres = $(_meson_env_array "$(tc-getRC)")
+	exe_wrapper = '${T}/sysroot-run'
 
 	[built-in options]
 	c_args = $(_meson_env_array "${CFLAGS} ${CPPFLAGS}")
