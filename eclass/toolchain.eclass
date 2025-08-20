@@ -61,7 +61,6 @@ if [[ ${CTARGET} = ${CHOST} ]] ; then
 		export CTARGET=${CATEGORY#cross-}
 	fi
 fi
-: "${TARGET_ABI:=${ABI}}"
 : "${TARGET_MULTILIB_ABIS:=${MULTILIB_ABIS}}"
 : "${TARGET_DEFAULT_ABI:=${DEFAULT_ABI}}"
 
@@ -2238,18 +2237,22 @@ gcc-multilib-configure() {
 	fi
 
 	# Translate our notion of multilibs into gcc's
-	local abi list
-	for abi in $(get_all_abis TARGET) ; do
+	local abis=$(get_all_abis TARGET) abi list
+	for abi in ${abis} ; do
 		local l=$(gcc-abi-map ${abi})
 		[[ -n ${l} ]] && list+=",${l}"
 	done
+	list=${list:1}
 
 	if [[ -n ${list} ]] ; then
-		case ${CTARGET} in
-			x86_64*)
-				confgcc+=( --with-multilib-list=${list:1} )
-			;;
-		esac
+		if [[ ${CTARGET} == riscv* ]] ; then
+			if has lp64d ${abis} && has lp64 ${abis} && has ilp32d ${abis} && has ilp32 ${abis} ; then
+				list="default"
+			elif [[ ${list} == *,* ]] ; then
+				die "riscv only supports one or all ABIs being enabled"
+			fi
+		fi
+		confgcc+=( --with-multilib-list=${list} )
 	fi
 }
 
