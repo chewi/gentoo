@@ -1,0 +1,49 @@
+Allow libffmpeg to be built for Chromium-based browsers
+https://patchwork.ffmpeg.org/patch/4500/
+
+NOTE: This patch lacks the Makefile include line. We append it
+manually instead to make patching across different versions easier.
+
+--- /dev/null
++++ b/ffbuild/libffmpeg.mak
+@@ -0,0 +1,40 @@
++, := ,
++LIBFFMPEG = $(SLIBPREF)ffmpeg$(SLIBSUF)
++LIBFFMPEG_LINK = $(LD) -shared -Wl,-soname,$(LIBFFMPEG) -Wl,-Bsymbolic -Wl,-z,now -Wl,-z,relro -Wl,-z,defs -Wl,--gc-sections $(LDFLAGS) $(LDLIBFLAGS) -o $(LIBFFMPEG)
++
++ifeq ($(CONFIG_SHARED),yes)
++LIBFFMPEG_DEPS = libavcodec/$(SLIBPREF)avcodec$(SLIBSUF) libavformat/$(SLIBPREF)avformat$(SLIBSUF) libavutil/$(SLIBPREF)avutil$(SLIBSUF)
++else
++LIBFFMPEG_DEPS = libavcodec/$(LIBPREF)avcodec$(LIBSUF) libavformat/$(LIBPREF)avformat$(LIBSUF) libavutil/$(LIBPREF)avutil$(LIBSUF)
++endif
++
++# Additional symbols (e.g. avutil_version) are required by Opera.
++ffbuild/libffmpeg-syms.txt: chromium/ffmpeg.sigs
++	printf "%s\n" $$(sed -nr 's:.*\b(av[a-z0-9_]*)\(.*:\1:p' $<) avformat_version avutil_version ff_h264_decode_init_vlc > $@
++
++ffbuild/libffmpeg.map: ffbuild/libffmpeg-syms.txt
++	printf "%s\n" "{" global: $$(sed 's:$$:;:' $<) local: "*;" "};" > $@
++
++ifeq ($(CONFIG_SHARED),yes)
++$(LIBFFMPEG): $(LIBFFMPEG_DEPS)
++	$(LIBFFMPEG_LINK) -Wl,--no-as-needed -lavcodec -lavformat -lavutil
++else
++$(LIBFFMPEG): $(LIBFFMPEG_DEPS) ffbuild/libffmpeg-syms.txt ffbuild/libffmpeg.map
++ifeq ($(SLIBSUF),.dylib)
++	$(LIBFFMPEG_LINK) -dead_strip -Wl,-exported_symbols_list,ffbuild/libffmpeg-syms.txt $(patsubst %,-Wl$(,)-u$(,)%,$(shell cat ffbuild/libffmpeg-syms.txt)) $(LIBFFMPEG_DEPS) $(EXTRALIBS-avcodec) $(EXTRALIBS-avformat) $(EXTRALIBS-avutil)
++else
++	$(LIBFFMPEG_LINK) -Wl,--version-script=ffbuild/libffmpeg.map $(patsubst %,-Wl$(,)-u$(,)%,$(shell cat ffbuild/libffmpeg-syms.txt)) -Wl,--start-group $(LIBFFMPEG_DEPS) -Wl,--end-group $(EXTRALIBS-avcodec) $(EXTRALIBS-avformat) $(EXTRALIBS-avutil)
++endif
++endif
++
++libffmpeg: $(LIBFFMPEG)
++
++install-libffmpeg: $(LIBFFMPEG)
++	$(Q)mkdir -p "$(SHLIBDIR)/chromium"
++	$(INSTALL) -m 755 $< "$(SHLIBDIR)/chromium/$<.$(SLOT)"
++	$(STRIP) "$(SHLIBDIR)/chromium/$<.$(SLOT)"
++
++uninstall-libffmpeg:
++	$(RM) "$(SHLIBDIR)/chromium/$(LIBFFMPEG).$(SLOT)"
++
++.PHONY: libffmpeg install-libffmpeg uninstall-libffmpeg
